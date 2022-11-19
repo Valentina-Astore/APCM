@@ -1,0 +1,41 @@
+import java.io.*;
+import java.net.*;
+
+public class RandomClient {
+    public void launch(String ip){
+	try {
+	    // Ci connettiamo al socket del server ad indirizzo ip la cui porta aperta è 2022
+	     Socket s=new Socket(ip,2022);
+
+	  
+	    // Qui possiamo leggere il flusso di dati creato dal server ...
+	    // Anche qui ho la catena di stream, ma in ingresso!
+	    DataInputStream reader=new DataInputStream(s.getInputStream());
+	     
+	    // Devo sapere che mi arriverà un double!
+	    double random=reader.readDouble();
+		  
+	    System.out.println(random);
+	    reader.close();
+	    
+	} catch(IOException ex){
+	    ex.printStackTrace();
+	}
+	
+    }
+
+    public static void main(String[] args){
+	String ip;
+	if(args.length>0)
+	    ip=args[0];
+	else /*
+	       Se non mi è stato passato l'ip allora presumo che il server è la macchina locale, detta anche localhost.
+	       L'indirizzo ip standard del localhost è 127.0.0.1
+	     */
+	    ip="127.0.0.1";
+	
+	RandomClient client=new RandomClient();
+	client.launch(ip);
+    }
+
+}

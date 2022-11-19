@@ -1,0 +1,190 @@
+* Il triangolo di Tartaglia (again)
+Il triangolo di Tartaglia soddisfa la sua proprietà additiva per il calcolo dei delle potenze successive del binomio x+y, cioè
+(x+y)^n 
+anche nell'anello F2[x,y].
+** Esercizio (Tartaglia)
+Implementate Tartaglia orientato ai bit, siete liberi di usare bitArrLib o modificarle un pò. Vedi ad esempio
+[[./MainTartaglia.c][Main Tartaglia]] 
+
+E' interessante l'output
+./MainTartaglia
+P.s.
+Sembra un frattale!
+
+* File e Stream
+In questa lezione parleremo di file e stream (e un pò di networking).
+In Unix si dice che tutto è un file. Vengono ad esempio considerati file stdin e stdout che definiscono l'input e l'output sulla console.
+Ma anche le pipe (come abbiamo visto nella prima settimana) sono viste come file. Nonostante siano meccanismi per far comunicare i processi (IPC). Quindi anche ciò che non è strettamente un file viene considerato tale perchè connesso alla comunicazione. Oggi si parla più spesso di stream che è un concetto analogo (e.g. Java).
+
+Vediamo alcuni esempi di programmi che gestiscono i file/stream in C.
+
+* getchar()
+Il primo è un esempio dell'uso di getchar(). Questa funzione ci permette di acquisire da console un carattere (anche esteso vedi UTF) da console
+[[./HexViz.c][Esempio di getchar]]
+
+Eseguiamo il file
+./HexViz
+Osservazioni
+1. Ogni carattere introdotto è seguito da invio -> 10=0A
+2. Il tasto di tabulazione è 09=09
+3. I caratteri accentati non sono ASCII ed hanno una codifica particolare in 2 byte 
+[[https://it.wikipedia.org/wiki/UTF-8][UTF-8/Unicode]]
+Mia osservazione: il file non si trova, in ogni caso il while per leggere caratteri finchè ci sono è while(c=getchar, c!= EOF){} dove EOF significa "End Of File" 
+
+* getc(_)
+Il secondo è un esempio di getc(filein). Questa funzione ci permette, analogamente alla precedente, di acquisire un carattere, ma anche un byte in formato binario, da file. 
+[[./HexVizGetc.c][Esempio di getc]]
+Anche stavolta il file manca. Per definire il puntantore ad un file essere lo standard input (da tastiera) facciamo:
+FILE * fpin;//dichiariamo la variabile (puntatore) fpin
+fpin = stdin; // impostiamo a standard input il valore del puntatore
+
+N.b. I due programmi sono praticamente identici a parte la definizione del file.
+Non è un caso: getchar() non è altro che una getc(stdin) dove stdin è il "file" stdin.
+
+* fread(_,_,_,_)
+In molti contesti non ha senso leggere un carattere da tastiera/lettera/byte alla volta.
+Infatti potrei voler leggere un blocco di dati. Ad esempio in un cifrario a blocchi o in uno streaming audio/video (es AES, che cifra a blocchi di 128, potrebe voler leggere 128 bit alla volta).
+In questi casi uso fread. Vedi
+[[./HexVizBlock.c][Esempio di fread]]
+Eseguiamo il programma
+
+./HexVizBlock testo.txt (o altro)
+
+* Eseclercizio Codice Cesare su File (getc/putc)
+Implementa usando getc il Codice Cesare su file ASCII. Cioè devi criptare i soli codici ASCII (32-126) lasciando invariato il resto.
+Lancio
+
+./codiceCesareFile 5 messaggio.txt messaggio.cry
+
+Ovviamente lo stesso programma decripta ma con la chiave giusta!
+Suggerimenti:
+1. Per aprire un file in scrittura: 
+char fileout[80];
+FILE *fpout;
+fpout=fopen(fileout,"w"):
+2. per scriver un carattere/byte, c,
+putc(c,fpout);
+3. possiamo fare operazioni sugli ASCII trattandoli come interi
+Quindi se c=='B' allora c-'A'==1. Infatti il codice ASCII di 'B' è 66 e quello di 'A' è 65.
+
+NB: i caratteri ASCII vanno da 32 a 126.
+
+* Esercizio XORfread 
+
+Scrivere un programma, usando la funzione fread(),  che restituisca  16 byte contenenti lo XOR a blocchi di 16 byte del file in input
+
+(Ogni B[i] è un byte)
+
+Cioè se caricassi tutto il file nel vettore B[], e ponendo XOR[16]
+XOR[0]=B[0]+B[16]+B[32]+...
+XOR[1]=B[1]+B[17]+B[33]+...
+...
+XOR[15]=B[15]+B[31]+B[47]+...
+
+Così ottengo un controllo di integrità (debole) del file.
+
+Nota bene.
+Caricare l'intero file nel vettore B[] è estremamente costoso ed inutile. Il programma ha bisogno di al più un paio di buffer di 16 byte ciascuno.
+
+* Stream 
+in Java
+Con gli stream in Java gestiamo flussi di dati da/a diverse fonti/destinazioni
+** FileStream
+In Java abbiamo maggiore ricchezza di classi ed oggetti per la gestione dell'I/O su file. 
+Ci focalizziamo su
+FileInputStream e FileOutputStream,
+perchè queste ci permettono di tradurre in modo diretto getc/fread.
+
+***  FileInputStream Vs fread
+Una traduzione parola per parola di 
+[[./HexVizBlock.c][HexViz in c]]
+è:
+[[./HexVizBlock.java][HexViz in Java]]
+
+***  FileInputStream Vs getc 
+Se invece volessimo leggere byte per byte e calcolare le occerenze di bytes nel file possiamo usare
+[[./BytesCounter.java][Bytes Counter]]
+
+** I Socket
+Nel 1983 la versione Unix di Berkeley implementa un nuovo metodo per le IPC (che ricordiamo essere l'Inter-Process Communication di un SO).
+Questo metodo usa i cosidetti Socket ("prese" in italiano). Tale metodo permette inoltre di fare comunicare i processi su macchine distinte e connesse in rete tramite il protocollo IP. Ricordiamo che nei primi anni 80 si inizia ad avere la diffusione di internet a livello globale.
+
+Java fornisce un'interfaccia ai socket estremamente semplice ed efficace. Questa vi sarà utile quando dovrete implementare la comunicazione tra macchine distinte nel vostro progetto.
+
+I socket ci danno la possibilità di implementare una connessione Client/Server.
+
+Immaginiamo di avere un Server, riconoscibile  su internet tramite un certo indirizzo IP, che genera numeri casuali.
+
+Tale server rende disponibile tali numeri, a richiesta di un Client, sulla porta 2022.
+
+
+La scelta del 2022 (anno attuale) nasce dal fatto che le porte nell'intervallo [0,1023] sono già utilizzate da servizi noti.
+Ad esempio:
+ 20 -> FTP;
+ 80 -> HTTP;
+443 -> HTTPS.
+
+
+Inoltre sono riservati due byte, dunque l'intero intervallo è [0,65535].
+N.B. In Linux/Mac per conoscere il vostro ip inserire 
+ifconfig
+
+(leggi il tuo indirizzo ip nella voce inet sotto UP, LOOPBACK, RUNNING)
+
+In Windows
+ipconfig
+
+Ecco un esempio di implementazione in Java.
+
+[[./RandomServer.java][Server per la generazione di numeri casuali]]
+
+Il Client, noto l'IP del server e la porta (2022) sulla quale propone il servizio, può agganciarsi al Socket e richiedere il numero. 
+
+Anche per questo ecco una implementazione in Java.
+[[./RandomClient.java][Client che richiede il numero casuale]]
+
+Il limite di questa procedura è che il server può gestire un solo client alla volta (in maniera sequenziale)
+
+* I thread in Java
+Il server per come è stato concepito può gestire una istanza alla volta. Che può essere accettabile per un servizio istantaneo come questo.
+D'altra parte possiamo immaginare diversi client che vogliono accedere ad un dato servizio nello stesso momento. 
+Inoltre il server non utilizza i vari core che possiede.
+
+Per risolvere questi problemi, la macchina virtuale Java gestisce il multithreading in modo nativo. Il multithreading da la possibilità di avere più flussi di esecuzione attivi in un singolo processo. Ciò è possibile mediante diversi Stack. Ad esempio
+
+|Stack del main-+  |Stack del thread t---+
++---------------+  +---------------------+
+|...            |  |                     |
+|...            |  |                     |
+|t.start()      |  |f1()                 |
+|main()         |  |run()                |
++---------------+  ----------------------+
+
+Il thread principale, come sappiamo ha il metodo main() alla base dello stack. Tutti gli altri thread alla loro base avranno il metodo run().
+Il Thread Scheduler della JVM deciderà quando un thread dovrà girare o fermarsi. A priori non possiamo sapere quando si attiverà uno o l'altro thread. Praticamente il Thread Scheduler è l'analogo del Process Manager del SO.
+
+Volendo "spremere" i quattro core del mio computer ho scritto un programma con 4 thread che generano numeri primi pseudo-random.
+
+[[./PrimeThreads.java][Generatore di primi su più threads]] 
+
+Se eseguiamo
+java PrimeThreads
+possiamo osservare come 
+1. Lo scheduler abbia distribuito il calcolo sui 4 core;
+2. Non è in alcun modo possibile sapere quando verrà eseguito un thread o un altro.
+ 
+
+* Esercizio
+Implementare un server che genera numeri random modificando i file 
+[[./RandomServer.java][Server per la generazione di numeri casuali]]
+e 
+[[./RandomClient.java][Client che richiede il numero casuale]]
+In modo che il server lanci come in 
+[[./PrimeThreads.java][Generatore di primi su più threads]] 
+esattamente 4 threads.
+
+Il server dovrà generare esattamente 500000 numeri casuali per ogni thread (o se preferite client).
+Ovviamente ognuno dei 4 client dovrà a sua volta leggere 500000 numeri casuali.
+Client e Server si chiuderanno una volta letti/scritti i 500000 numeri.
+
+

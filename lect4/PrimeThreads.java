@@ -1,0 +1,57 @@
+// BigInteger permette di manipolare numeri interi grandi a piacere!
+import java.math.BigInteger;
+import java.util.Random;
+
+// implements runnable indica che sto implementando l'interfaccia runnable. Cioè posso generare nuovi thread mediante il metodo run().
+public class PrimeThreads implements Runnable{
+    static final int len=300; //creerò un numero tra 0 e 2^300-1
+    public BigInteger next;//perché devo gestire numeri molto grandi
+
+
+    public PrimeThreads(){
+	Random rand=new Random();
+	// Genero un numero che sta nell'intervallo [0, 2^len -1], in modo random.
+	BigInteger x=new BigInteger(len, rand);
+	// Calcolo lo pseudo-primo più grande di x
+	next=x.nextProbablePrime();
+    }
+    
+    public static void main(String [] args){
+	// Gli oggetti r1,...,r4 vengono inizializzati tramite il costruttore sopra descritto.
+	PrimeThreads r1=new PrimeThreads();
+	PrimeThreads r2=new PrimeThreads();
+	PrimeThreads r3=new PrimeThreads();
+	PrimeThreads r4=new PrimeThreads();
+	//
+	
+
+	// Dato che gli oggetti r1,...,r4 sono tutti degli oggetti runnable posso creare 4 distinti threads
+       	Thread t1=new Thread(r1);
+	Thread t2=new Thread(r2);
+	Thread t3=new Thread(r3);
+	Thread t4=new Thread(r4);
+	//
+	// Gli do dei nomi ..
+	t1.setName("t1");
+	t2.setName("t2");
+	t3.setName("t3");
+	t4.setName("t4");
+	// ... e li lancio. A questo punto il metodo run viene lanciato per ognuno dei 4 nuovi thread. Ognuno col suo stack.
+	
+	t1.start();
+	t2.start();
+	t3.start();
+	t4.start();
+    }
+++
+    public void run(){
+	// Nella stringa threadName ottengo il nome del thread che si sta eseguendo
+	String threadName=Thread.currentThread().getName();
+	for(int i=0;i<100000;i++){
+	    //Stampo il numero primo
+	    System.out.println(threadName+")"+next);
+	    // Calcolo il sucessivo primo.
+	    next=next.nextProbablePrime();
+	}
+    }
+}
