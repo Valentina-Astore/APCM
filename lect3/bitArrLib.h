@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include <inttypes.h>
+#include <stdlib.h>
+
+// Crea in modo dinamico un array di bit
+uint64_t* bitArray(uint64_t dim);
+// La seguente funzione implementa "A[ind]=bitval" orientata ai bit su word di 64 bits
+// Dove bitval è 1 o 0.
+void setBit(uint64_t A[], uint64_t ind,uint8_t bitval);
+// La seguente funzione restituisce 1 o 0 cioè il valore di "A[ind]"
+uint8_t getBit(uint64_t A[], uint64_t ind);
+// Stampa l'array in formato leggibile per gli umani
+void printBitArray(uint64_t A[], uint64_t dim);
+
+//nota bene: viene usato uint8_bit perché è il più piccolo disponibile

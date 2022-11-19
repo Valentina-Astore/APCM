@@ -1,0 +1,42 @@
+#include <stdint.h>
+#include <inttypes.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+
+//posso usare define anche per definire delle macro
+#define ROTATELT8BIT(byte)  byte << 1 | byte >> 7
+#define GETBIT(byte, pos) ((byte >> pos) & 1)  
+
+void print8bit(uint8_t byte);
+
+
+int main() {
+  uint8_t start; 
+  printf("Insert the starting byte :");
+  scanf("%" SCNu8,&start);
+  
+  uint8_t registro= start;
+  uint8_t clock= 0; 
+
+  do{
+    printf("%3d:", ++clock);
+    print8bit(registro);
+    printf("\n");
+    // To emulate rotation left by 1 bit we shift left by 1 bit. This adds a trailing 0. Then we shift right of 7 position this add 7 0s.
+    // The remainng bit is in the first position and goes to substitute the trailing 0 of the shift left operation.
+    //registro =  registro << 1 | registro >> 7;
+    registro=ROTATELT8BIT(registro);
+  }while(registro!=start);
+  printf("\n");
+  return 0;
+}
+
+
+
+
+void print8bit(uint8_t byte){
+  for (int i = 7; i >=0 ; i--)  printf("%c", GETBIT(byte, i) ? '1' : '0'); 
+}
+
+

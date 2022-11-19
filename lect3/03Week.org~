@@ -1,0 +1,189 @@
+* Operatori orientati ai bit
+Nella prima lezione abbiamo visto come l0a ALU (che fa parte della CPU) abbia comandi atti ad effettuare operazioni aritmetiche e logiche. 
+Tali operazioni essendo esguite tramite un solo comando (in LM) sono le elaborazioni più veloci attuabili all'interno di un computer.
+
+Tra queste, gli operandi che hanno il massimo rilievo per quanto riguarda i cifrari simmetrici, sono quelli logici detti anche 
+"operatori orientati ai bit". 
+Essi hanno una traduzione in C secondo il seguente "dizionario"
+
+** CPU/ALU --> C
+1. Operatori binari (e.g. tra  due registri)
+AND --> &
+OR  --> |
+XOR --> ^
+
+
+2. Operatori unari (e.g. su un solo registro)
+SHL --> <<   (si può indicare di quante posizioni effettuare lo shift)
+SHR --> >>  
+NOT --> ~
+INC --> ++   
+DEC --> --
+
+** Esempio di AND    
+Ad es. Supponiamo di operare tramite due registri della CPU, che poniamo per semplicità essere "a" e "b" di una CPU a 8 bit.
+Supponiamo che il loro valore iniziale in formato binario sia
+a=00001111 
+b=01010101
+allora 
+AND a,b
+restituisce il valore (in a)
+->00000101
+Cioè l'operatore orientato ai bit esegue l'operazione in "parallelo" (o se preferite com se fosse un vettore F2^8) sugli 8 bit  (1 byte) dei registri.
+Ovviamente se la CPU è a 64 bit, potenzialmente posso agire 8 byte alla volta!
+Ecco perchè sia in teoria dei codici che in crittografia, il campo F2 (e le sue estensioni, in particolare le estensioni di F2^8) ha massimo rilievo.
+
+In C date due variabili intere a, b scrivo il seguente:
+a = a&b;
+Ottenendo un risultato analogo al precedente.  Esso viene effettivamente tradotto (a passo di compilazione) nell'operatore AND della CPU.
+
+N.b.
+Spesso si usa la notazione esadecimale per rappresentare il valore di uno o più byte. Infatti raggruppo 4 bit (nibble) in una unica cifra esadecimale. Dunque Un byte sarà rappresentato da 2 cifre esadecimali.
+Ad esempio:
+00001111 -> 0F
+01010101 -> 55
+* I nuovi tipi in "inttypes.h" (C99)
+Purtroppo "a priori" non è possibile sapere la lunghezza in un tipo int (in byte) in C.
+Questa lunghezza dipende dall'architettura del vostro computer.
+Per ovviare a questo problema nella versione ANSI del C99 vengono definiti dei tipi di lunghezza esatta.
+Inserendo la direttiva di preprocessore
+#include "inttypes.h"
+all'interno del nostro codice, potremo definire la variabile 
+uint8_t a;           tutte le variabili di questo pacchetto finiscono con _t che significa che è un tipo. u sta per unsigned, int per intero, 8 per il numero di bit assegnati
+ottenendo che a è una variabile lunga un byte (8), unsigned (u). Cioè nell'intervallo [0,255]. O se preferite [0,FF].
+Eseguiamo il programma 
+./printEsaBit |less
+
+Leggiamo il seguente programma commentato
+[[./printEsaBit.c][Stampa binaria ed esadecimale]]
+
+** Esercizio
+Modifichiamo il precedente programma stampando anche in forma binaria:
+1) Il complemento della variabile 
+2) i 6 bit meno significativi mettendo a 00 i primi due.
+Usa gli operatori ~ e &.
+
+* Le nuove costanti in "inttypes.h" (C99)
+Quando usiamo i tipi definiti in inttypes.h, dobbiamo poterli gestire da console in modo coerente.
+
+inttypes.h definisce quindi le  costanti di preprocessore che ci permettono di gestire l'i/o.
+
+Osserviamo il file 
+[[./MaskAnd.c][Esempio di I/O]]
+
+N.b.
+Oltre a PRIu8 esistono le varianti a 16, 32 e 64. La stessa cosa vale per SCNu8.
+
+** Esercizio
+Esiste un importante comando delle nostre CPU che non è contemplato in C: Rotate.
+Questo shifta un registro (a destra o sinistra) recuperando il bit di "testa"  reinserendo in "coda".
+E' interessante osservare che se usiamo gli operatori ai bit corretti, |, >> e <<, il compilatore sarà in grado di tradurre il codice in un unico comando di LM.
+
+Scrivi un programma che faccia una successione di rotate a sinistra di 1 bit alla volta. Dopo 8 chiamate ritornerò dunque alla posizione iniziale. 
+Hint: usate |, >> e <<.
+Vedi
+./Rotate8bit
+
+* Le Macro
+Abbiamo visto come sia possibile con gli operatori bit oriented scrivere un codice estremamente compatto.
+C permette di usare le macro per ottenere due obbiettivi:
+a. La macro rende più leggibile il codice;
+b. A tempo di preprocessing la macro viene sostituita con il codice. Dunque non è usato alcuno stack nè variabili temporanee per chiamate a funzione.
+L'unico difetto è che le macro non possono essere utilizzate per operazioni "complesse". 
+Vediamo l'esempio
+[[./Rotate8bitWithMacro.c][Esempio di macro]]
+
+* Facciamo un pò di ordine: Le "librerie" ... 
+Nel prossimo esercizio chiederò di calcolare la funzione che mi da il peso di Hamming. 
+Però prima di scrivere il codice, osserviamo che:
+Abbiamo costruito un paio di funzioni che ptranno essere utili per diverse applicazioni orientate ai bit di un "byte".
+- La stampa di "byte" in binario;
+- La rotazione di "byte".
+Inoltre a queste possiamo aggiungere Hw (il peso di Hamming).
+Quindi sarebbe utile, invece di copiare ed incollare il codice di queste funzioni, creare una libreria le cui funzioni possano essere utilizzate all'occorrenza da altri programmi, senza ricompilare il codice.
+Per compilare un file "senza" renderlo eseguibile, ma rendendolo disponibile per il collegamento, detto "link", con l'eseguibile finale, devo:
+gcc -c ByteLib.c
+Il compilatore genera il file ByteLib.o
+Un file come ByteLib.o si chiama file oggetto.
+A questo punto devo scrivere il file ByteLib.h, contenente i prototipi (o le firme, se preferite) delle tre funzioni.
+[[./ByteLib.h][ByteLib.h]]
+
+
+Infine modifico il file main di rotate, che  diventerà
+[[./Rotate8bitWithLib.c][Rotate con la libreria]]
+
+A questo punto per generare l'eseguibile dovrò:
+gcc Rotate8bitWithLib.c ByteLib.o -o Rotate8bitWithLib
+* Facciamo un pò di ordine: ... e i Makefile
+Si può osservare come, se da una parte ho dato maggiore ordine al mio programma, dall'altro lato ho appesantito il processo di compilazione.
+
+Per ovviare a tutto ciò si utilizza il Makefile
+[[./Makefile][Makefile]]
+Una volta redatto il Makefile, sarà sufficiente 
+make
+** Ma ne vale la pena?
+Immaginiamo di avere un progetto complesso con diversi file in C e Java. Ad esempio il progetto che dovrete presentare.
+In questo caso il Makefile è estremamente utile.
+Nel Makefile posso fare coabitare anche diversi linguaggi di programmazione.
+
+* Esercizio
+Scrivere una funzione che calcoli il peso di Hamming, il cui prototipo è
+uint8_t Hw(uint8_t word);
+come visto in ByteLib.h
+
+Dunque scrivi un programma che enumeri tutte le parole di un codice generato da tre parole inserite dall'utente.
+Nell'enumerare le parole visualizza anche il peso di Hamming.
+Il programma deve utilizzare il file oggetto ByteLib.o
+Vedi 
+./code8bitweight
+
+* Un vettore di bit
+I processori attuali riescono a manipolare registri a 64 bit.
+Quindi in modo compatto posso facilmente esprime un vettore definito su F2,
+F2^n
+tramite k parole, con k=ceil(n/64).
+
+Avete già implemenato in il "crivello di Eratostene".
+Avrete notato come ci sia un grande spreco di memoria nell'array che contiene solo i valori
+0. Per i non-primi
+1. per i primi
+O viceversa.
+
+In questo caso potremmo utilmente utilizzare la programmazione bit-oriented per ottimizzare la memoria.
+
+** Esercizio (bitArrLib)
+Implementare una libreria che mi permetta di:
+1. Allocare dinamicamente un vettore di bit (e.g. A[])  di dimensione "dim":
+uint64_t* bitArray(uint64_t dim);
+2. Settare ad 1 o 0 (bitval) il vettore A e alla posizione "ind". Cioè che sia equivalente a "A[ind]=bitval". 
+void setBit(uint64_t A[], uint64_t ind,uint8_t bitval);
+
+3. Prendere l'i-esimo valore di A. 
+uint8_t getBit(uint64_t A[], uint64_t ind);
+
+4. Stampare l'array come una sequenza di 1 e 0, 50 caratteri per riga a schermo 
+void printBitArray(uint64_t A[], uint64_t dim);
+
+[[./bitArrLib.h][Funzioni di Bit Array]]
+
+N.b.
+Al punto 1, potete usare la funzione calloc
+void* calloc (size_t num, size_t size);
+dove num è la dimensione dell'array e size la dimensione del tipo di entry del vettore.
+Questa funzione rispetto a malloc inizializza a 0 la memoria allocata.
+
+---
+Se siete prudenti create un file di 
+TestBitArray.c
+Con il quale verificare il funzionamento della libreria
+bitArrLib.c
+
+Se non lo siete andate al seguente
+* Esercizio (Eratostene in bit)
+
+Modificate eratostene.c usando la libreria bitArrLib.c
+
+Osserviamo che se metto a confronto le due versioni di Eratostene nell'intervallo [1, 10^9], la memoria utilizzata dalla seconda versione è nettamente inferiore.
+D'altra parte Il primo impiega circa 2 minuti, il secondo un po' meno di 3. 
+
+

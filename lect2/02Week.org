@@ -1,0 +1,235 @@
+* Puntatori operatori di referenziazione e deferenziazione (&/*)
+Osserviamo il file
+[[./scambia.c][scambia.c]]
+
+
+
+Un pò di aritmetica dei puntatori
+[[./ruotaArr.c][ruotaArr.c]]
+
+Riguardiamo insieme
+[[../01Week/length.c][Hello CryptoLab]]
+N.b.
+In questo caso l'operatore di deferenziazione * è più efficiente dell'indice di array [i]. 
+Infatti posso calcolare la lunghezza della stringa senza usare la variabile ausiliaria "i".
+
+
+** Esercizio
+Modifica 
+[[../01Week/length.c][Hello CryptoLab]]
+in modo da invertire la stringa tramite i due puntatori pFirst e pLast, modificando il programma 
+
+N.b.
+E' necessario modificare la riga
+char *pt1="Hello CryptoLabTN"; 
+con la riga
+char p[]="Hello CryptoLabTN"; 
+Infatti nel primo caso la stringa viene inserita nella zona di memoria che è utilizzata dal codice macchina, dunque NON MODIFICABILE.
+Nel secondo caso nello Stack, come una qualunque variabile e dunque MODIFICABILE.
+
+* Array, Stack and Heap 
+** Array nello Stack
+Il seguente programma permette di definire un array passando la sua dimensione come parametro dalla console.
+[[./array.c][array]]
+Se giochiamo un pò, osserviamo che inserendo un certo valore (nel mio laptop Linux ad es. 10000000), il SO dà un errore di segmentazione. Cioè il segmento di RAM dedicato allo Stack del programma è esaurito.
+Stack o catasta del processo in esecuzione.
++-----------------Stack del processo-------------+
+^ .....                                          ^
+| .....                                          | 
+|variabili di g (funzione lanciata da f)         |
+|variabili di f (funzione lanciata dal main)     |
+|variabili del main()                            | 
++------------------------------------------------+
+Il processo ha a disposizione una porzione limitata della RAM. 
+
+** Array nello Heap in modo statico
+Viceversa definendo un array static la memoria allocata è nello Heap (Mucchio).
+Cioè in una zona della RAM allocata runtime non necessariamente contigua allo stack o al codice del processo.
+Dunque potenzialmente tramite C si può allocare  l'intera  memoria RAM libera dai processi attualmente attivi.
+Allo stesso modo verrà trattato un array globale, cioè esterno a tutte le funzioni di un file.
+N.b.
+Lo Heap viene gestito secondo politiche che possono essere diverse da SO a SO. 
+Lo Heap in ogni caso viene gestito dal Memory Manager del SO. 
+
+[[./arrayDefinedBig.c][array allocato nello heap in modo statico]]
+
+Se lancio il programma ed eseguo "top", posso osservare come la memoria utilizzata è circa il 50% dell'intera RAM! 
+
+** Array nello Heap 
+** Array nello Stack
+Il seguente programma permette di definire un array passando la sua dimensione come parametro dalla console.
+[[./array.c][array]]
+Se giochiamo un pò, osserviamo che inserendo un certo valore (nel mio laptop Linux ad es. 10000000), il SO dà un errore di segmentazione. Cioè il segmento di RAM dedicato allo Stack del programma è esaurito.
+Stack o catasta del processo in esecuzione.
++-----------------Stack del processo-------------+
+^ .....                                          ^
+| .....                                          | 
+|variabili di g (funzione lanciata da f)         |
+|variabili di f (funzione lanciata dal main)     |
+|variabili del main()                            | 
++------------------------------------------------+
+Il processo ha a disposizione una porzione limitata della RAM. 
+
+** Array nello Heap in modo statico
+Viceversa definendo un array static la memoria allocata è nello Heap (Mucchio).
+Cioè in una zona della RAM allocata runtime non necessariamente contigua allo stack o al codice del processo.
+Dunque potenzialmente tramite C si può allocare  l'intera  memoria RAM libera dai processi attualmente attivi.
+Allo stesso modo verrà trattato un array globale, cioè esterno a tutte le funzioni di un file.
+N.b.
+Lo Heap viene gestito secondo politiche che possono essere diverse da SO a SO. 
+Lo Heap in ogni caso viene gestito dal Memory Manager del SO. 
+
+[[./arrayDefinedBig.c][array allocato nello heap in modo statico]]
+
+Se lancio il programma ed eseguo "top", posso osservare come la memoria utilizzata è circa il 50% dell'intera RAM! 
+
+** Array nello Heap in modo dinamico
+E se non sapessi "a priori" la dimensione dell'array da gestire?
+Cioè se ad esempio volessi come nel primo programma array.c creare un array dinamicamente?
+Dovrò chidere al MM del SO di allocare la memoria richiesta nello Heap.
+In C dovrò usare
+malloc (per richieder la memoria)  e free (per rendere disponibile agli altri processi la memoria che ho precedentemente richiesto).
+Vediamo il sorgente
+[[./arraymalloc.c][array allocato nello heap dinamicamente tramite malloc]]
+
+Eseguiamo il programma con diversi parametri crescenti, finchè non da
+"memoria esaurita!"
+
+** Esercizio 
+Scrivi un programma che implementi il crivello di Eratostene la cui dimensione è data runtime dalla linea di comando.
+Dovrai usare malloc per allocare l'array.
+Come tipo delle entrate dell'array usa 
+unsigned short  
+Guardiamo l'output della mia implementazione per ricordare un pò ...
+./eratostene 1000
+
+* Oggetti in Java (e scope in C e Java) 
+Come esempio reimplento ruotaArr.c dal punto di vista di Java.
+Cioè orientato agli oggetti.
+Immagino un oggetto di tipo Sequenza come
+(0,1,2,...,n-1)
+** Class Sequenza
+   [[./Sequenza.java][Esempio di classe]]
+** Scope in C 
+In C ogni variabile è locale. Se f() è una funzione, nè le funzioni chiamanti f(), nè le funzioni chiamate da f(), possono avere accesso alle variabili in f().
+Ad esempio 
+f(){
+  int a;
+  f2(); // Non vede a al suo interno
+}
+Per rendere una variabile visibile devo renderla globale (visibile a tutte le funzioni definite nel file in .c).
+E' sufficiente definire la variabile all'esterno delle funzioni. 
+Solo in casi "eccezionali" si definisce una variabile globale.
+
+** Scope in Java
+In Java esistono le variabili locali. Definite all'interno dei metodi. Si comportano allo  stesso modo del C. Cioè sono visibili SOLO all'interno dei metodi.
+Ma in Java esistono anche le variabili di istanza che (solitamente) sono visibili  all'interno di tutti i metodi dell'oggetto.
+Di solito si pongono come private (visibili solo all'oggetto).
+Le variabili locali vanno nello Stack e quelle di istanza (cioè gli oggetti) vanno nello Heap.
+Ovviamente Stack ed Heap sono gestiti in questo caso dalla JVM.
+
+* Puntatori in C Vs Object reference in Java
+In Java abbiamo due tipi di variabili:
+** Primitive 
+boolean, byte(8 bit), short (16 bit), int (32 bit), long (64 bit), char, float, double.
+N.b. Tutti i primitive numerici sono signed non come C!
+Le variabili primitive sono "analoghe" a quelle del C (in C non esistono byte e boolean, e non tutti gli int 
+hanno la stessa lunghezza).
+** Object reference
+Gli object reference li abbiamo visti in Sequenza.java (vedi sq1)
+Sequenza sq1=new Sequenza(max);
+a. new Sequenza(max) -> alloca nello heap della JVM il nuovo oggetto.
+b. Sequenza sq1 è un object reference che viene inizializzato tramite "=" col valore restituito da "new".
+
+Ovviamente l'object reference "nasconde" un puntatore C-like!
+Osserviamo che non esiste free!
+Java tramite il Garbage Collector rimuove periodicamente gli oggetti che stanno nello Heap, che non hanno alcun object reference che li indichi.
+
+* Esercizio
+Creiamo un "quasi-oggetto" in C: tartaglia.
+Vediamo
+[[./TartagliaIncompleto.c][Tartaglia]]eap in modo dinamico
+E se non sapessi "a priori" la dimensione dell'array da gestire?
+Cioè se ad esempio volessi come nel primo programma array.c creare un array dinamicamente?
+Dovrò chidere al MM del SO di allocare la memoria richiesta nello Heap.
+In C dovrò usare
+malloc (per richieder la memoria)  e free (per rendere disponibile agli altri processi la memoria che ho precedentemente richiesto).
+Vediamo il sorgente
+[[./arraymalloc.c][array allocato nello heap dinamicamente tramite malloc]]
+
+Eseguiamo il programma con diversi parametri crescenti, finchè non da
+"memoria esaurita!"
+
+** Esercizio 
+Scrivi un programma che implementi il crivello di Eratostene la cui dimensione è data runtime dalla linea di comando.
+Dovrai usare malloc per allocare l'array.
+Come tipo delle entrate dell'array usa 
+unsigned short  
+Guardiamo l'output della mia implementazione per ricordare un pò ...
+./eratostene 1000
+
+* Oggetti in Java (e scope in C e Java) 
+Come esempio reimplento ruotaArr.c dal punto di vista di Java.
+Cioè orientato agli oggetti.
+Immagino un oggetto di tipo Sequenza come
+(0,1,2,...,n-1)
+** Class Sequenza
+   [[./Sequenza.java][Esempio di classe]]
+** Scope in C 
+In C ogni variabile è locale. Se f() è una funzione, nè le funzioni chiamanti f(), nè le funzioni chiamate da f(), possono avere accesso alle variabili in f().
+Ad esempio 
+f(){
+  int a;
+  f2(); // Non vede a al suo interno
+}
+Per rendere una variabile visibile devo renderla globale (visibile a tutte le funzioni definite nel file in .c).
+E' sufficiente definire la variabile all'esterno delle funzioni. 
+Solo in casi "eccezionali" si definisce una variabile globale.
+
+** Scope in Java
+In Java esistono le variabili locali. Definite all'interno dei metodi. Si comportano allo  stesso modo del C. Cioè sono visibili SOLO all'interno dei metodi.
+Ma in Java esistono anche le variabili di istanza che (solitamente) sono visibili  all'interno di tutti i metodi dell'oggetto.
+Di solito si pongono come private (visibili solo all'oggetto).
+Le variabili locali vanno nello Stack e quelle di istanza (cioè gli oggetti) vanno nello Heap.
+Ovviamente Stack ed Heap sono gestiti in questo caso dalla JVM.
+
+* Puntatori in C Vs Object reference in Java
+In Java abbiamo due tipi di variabili:
+** Primitive 
+boolean, byte(8 bit), short (16 bit), int (32 bit), long (64 bit), char, float, double.
+N.b. Tutti i primitive numerici sono signed non come C!
+Le variabili primitive sono "analoghe" a quelle del C (in C non esistono byte e boolean, e non tutti gli int 
+hanno la stessa lunghezza).
+** Object reference
+Gli object reference li abbiamo visti in Sequenza.java (vedi sq1)
+Sequenza sq1=new Sequenza(max);
+a. new Sequenza(max) -> alloca nello heap della JVM il nuovo oggetto.
+b. Sequenza sq1 è un object reference che viene inizializzato tramite "=" col valore restituito da "new".
+
+Ovviamente l'object reference "nasconde" un puntatore C-like!
+Osserviamo che non esiste free!
+Java tramite il Garbage Collector rimuove periodicamente gli oggetti che stanno nello Heap, che non hanno alcun object reference che li indichi.
+
+* Esercizio
+Creiamo un "quasi-oggetto" in C: tartaglia.
+Vediamo
+[[./TartagliaIncompleto.c][Tartaglia]]
+Devi implementare costruttore e metodo per la stampa.
+
+N.b.
+La tecnica che abbiamo visto viene effettivamente utilizzata per simulare una programmazione ad oggetti in librerie in C.
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+

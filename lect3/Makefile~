@@ -1,0 +1,14 @@
+# Qui si mettono tutti gli eseguibili del progetto (il secondo è il programma del prossimo esercizio)
+all: Rotate8bitWithLib code8bitweight
+
+# Qui descrivo le dipendenze del mio eseguibile. Se la data del mio eseguibile è precedente della data dei 3 file dopo ":" ...
+Rotate8bitWithLib: Rotate8bitWithLib.c ByteLib.h ByteLib.o
+# .. allora esegui il seguente comando
+	gcc Rotate8bitWithLib.c -o Rotate8bitWithLib ByteLib.o	
+# Allo stesso modo, ByteLib.o dipende dai due file dopo i due punti. 
+ByteLib.o : ByteLib.c ByteLib.h
+# Se devo aggiornarlo eseguo il comando
+	gcc -c ByteLib.c
+
+code8bitweight: code8bitweight.c ByteLib.h ByteLib.o
+	gcc code8bitweight.c -o code8bitweight ByteLib.o
