@@ -1,0 +1,46 @@
+class arc4PRNG {
+    public static void PrintOut(byte[] Out){
+	System.out.println("----");
+	for(int i=0;i<Out.length;i++)
+	    System.out.println(String.format("%02X",Out[i]));
+    }
+    public static void main(String[] args) {
+	byte Key[]={'p','i','p','p','o'};
+	byte Out[];
+	Out=new byte [15];
+	arc4JNI arc4A=new arc4JNI();
+	//	arc4A.id();
+	System.out.println(String.format("Id di A=%02d",arc4A.id()));
+	arc4JNI arc4B=new arc4JNI();
+	System.out.println(String.format("Id di B=%02d",arc4B.id()));
+
+	
+	arc4A.Setup(Key);
+	System.out.println("---------------------------");
+	System.out.println("Random di A");
+	arc4A.PRNG(Out);
+	PrintOut(Out);
+	
+	System.out.println("---------------------------");
+	System.out.println("Setto B");
+	arc4B.Setup(Key);
+
+	System.out.println("---------------------------");
+	System.out.println("Continuo con i random di A");
+	arc4A.PRNG(Out);
+	PrintOut(Out);
+	
+	System.out.println("---------------------------");
+	System.out.println("Random di B");
+	arc4B.PRNG(Out);
+	PrintOut(Out);
+
+	
+
+
+	// new arc4JNI().Setup(Key);
+        // new arc4JNI().PRNG(Out);
+	
+
+    }
+}

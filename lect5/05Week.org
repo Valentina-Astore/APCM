@@ -1,0 +1,212 @@
+* Prima App Crittografica
+In questa lezione darò un esempio semplificato di una applicazione tipo per il progetto 
+Per progettare la prima app crittografica tramite il binomio C/Java richiamiamo un semplice, ma estremamente interessante algoritmo crittografico:
+L'(A)RC4.
+** Cenni storici
+L'algoritmo inventato da Ron Rivest nel 1987 è rimasto segreto per parecchi anni ed è stato ampiamente utilizzato da molti protocolli su TCP/IP (Wireless, SSL, etc.). Successivamente negli anni 90 è stato anonimamente rivelato, e quindi rotto. Oggi non è più utilizzato (almeno ufficialmente).
+
+* Parte in C
+In questa parte dovremo implementare una libreria contenente le funzioni di ARC4
+** ARC4 in sintesi
+ARC4 è uno stream cipher che utilizza:
+1) Una sequenza di byte pseudo casuali da sommare (XOR) con il testo in chiaro;
+2) Il concetto di permutazione.
+Ricordiamo che l'algoritmo usa un vettore di 256 byte 
+S[256]
+e due indici su questo vettore 
+i,j
+(anch'essi ovviamente byte).
+L'idea è di pemutare gli elementi di S ad ogni cifratura di un byte avendo un flusso pseudo-random.
+** Setup
+Il setup avviene tramite una chiave lunga da 5 a 32 (keylength) bytes
+key[keylength]
+Eccone lo pseudo-codice
+---SetUp---
+S[i]=i i=0,...,255
+j=0
+for i=0,...,255
+  j=(j+S[i]+key[i mod keylength]) mod 256
+  swap(S[i],S[j])
+-----------
+
+Si osservi come alla fine del ciclo tutti gli elementi del vettore S sono stati scambiati!
+Eseguiamo 
+./arc4Setup pippo
+
+Il primo obbiettivo è implementare il setup in C. Ma prima voglio descrivervi alcuni 
+** File forniti
+Aprite il file
+[[./arc4Setup.c][Setup]]
+Questo fa riferimento al
+[[./arc4Lib.h][arc4Lib.h]]
+
+Inoltre avete anche il
+[[./Makefile][Makefile]] 
+per compilare l'intero progetto.
+
+
+
+Ovviamente per utilizzare i file dovrete commentare le funzioni non ancora implementate nel file arc4Lib.h e nel Makefile
+** PRNG con ARC4
+Il programma appena costruito può servirci per generare "l" byte pseudorandom tramite 
+[[./arc4PRNG.c][PRNG]]
+ 
+
+Lo pseudo codice è
+---PRNG---
+input: out[],l       out è il buffer in cui scrivere, la lunghezza del buffer
+i=j=0
+for k=0,...,l-1
+  i++
+  j=j+S[i]
+  scambia(S[i],S[j])
+  out[k]=S[S[i]+S[j]]
+---------
+
+
+** (De)Crittazione con ARC4
+Per la (de)criptazione a questo punto è sufficiente fare lo xor dello stream con il plaintext(cyphertext).
+
+N.b. Lanciando più volte la funzione 
+arcTranslateByte
+dobbiamo evitare che i valori interni di i e j si resettino. Come?
+
+
+Eseguiamo i file
+
+./arc4Crypt pippo messaggio.cry
+
+(per scrivere il testo devo scrivere tutto quello che voglio e poi andare di CTRL D che è l'EOF)
+
+./arc4Decrypt pippo messaggio.cry
+
+
+Ecco i file di test
+[[./arc4Crypt.c][Test per crittare]]
+[[./arc4Decrypt.c][Test per decrittare]]
+
+* Un'integrazione tra Java e C: La Java Native Interface
+
+La Java Native Interface permette di integrare in Java una libreria "nativa", cioè compilata sul sistema su cui stiamo lavorando.
+Ovviamente perderemo la portabilità dell'applicativo a meno della ricompilazione della libreria in questione.
+
+** Obbiettivo
+Il nostro obbiettivo è
+1. Creare una libreria in C per ARC4 che sia interfacciabile con Java (JNI);
+2. Scrivere un programma in Java che esegua le funzioni/metodi in C (JNI);
+3. Creare una interfaccia in Java verso : Network, Multithreading, GUI (JavaFX). In questo modo non dovremo implementarle in C!
+
+Nota. Il riferimento bibliografico a quanto di seguito descritto è:
+
+The Java Native Interface
+Programmer's guide specification
+Sheng Liang
+
+Capitoli 1,2 e 3.
+
+** Un primo passo : PRNG lanciato da JAVA
+
+Un primo esempio minimale di JNI è dato dal seguente
+[[./JNI/arc4PRNG.java][Main in Java]]
+Osserviamo come si debba definire il metodo nativo runarc4() e caricare la libreria nativa (arc4Lib).
+Lanciamo il file tramite 
+./Run     (prima però devi aver fatto               chmod +x Run                      sul terminale, che significa dare il permesso a run di essere eseguito)
+[[./JNI/Run][Run]]
+Ottengo lo stesso output di
+./arc4PRNG pippo 15
+Infatti 
+[[./JNI/runarc4.c][runarc4]]
+usa esattamente questi parametri!
+
+Studiando il Makefile osserviamo come compilare il nostro progetto
+
+** Makefile
+Ecco il Makefile
+[[./JNI/Makefile][Makefile]]
+
+A parte il solito 
+javac
+troviamo 
+javah
+che genera il file dei
+[[./JNI/arc4PRNG.h][Prototipi JNI]]
+che ci dice esattamente come definire la nostra funzione runarc4.
+Riguardiamola
+[[./JNI/runarc4.c][Main in c]]
+Osserviamo come ho due parametri env e obj, che in questo esempio non utilizzo.
+JNIEXPORT void JNICALL
+Java_arc4PRNG_runarc4(JNIEnv *env, jobject obj)
+
+Seguendo l'analisi del
+
+[[./JNI/Makefile][Makefile]]
+
+a parte -fPIC la compilazione di arc4Lib.o e byteLib.o è identica, come lo sono i file  arc4Lib.c e byteLib.c.  
+Più complessa è la generazione della libreria nativa che richiede i prototipi Java, tipi e costanti definiti nelle JNI per C/C++, che si devono cercare con pazienza all'interno della propria installazione e/o ricopiare nella cartella corrente.
+Inoltre le opzioni:
+(-fPIC),-z noexecstack, -shared sono necessarie per gcc sotto linux per creare una libreria dinamica e compatibile con le richeste di Java. 
+E cambiano da sistema a sistema.
+
+** Passaggio di parametri ed una classe nativa
+
+Nella seconda implementazione facciamo comunicare realmente i due linguaggi
+[[./JNISpeaksWithC/Makefile][Makefile]]
+
+Apriamo intanto 
+[[./JNISpeaksWithC/arc4JNI.java][arc4JNI]]
+che crea la classe contenente i metodi nativi. Questo rende la mia classe facilmente modificabile e riutilizzabile.
+
+
+E la seconda classe 
+[[./JNISpeaksWithC/arc4PRNG.java][arc4PRNG]]
+avente il main che verifica il funzionamento della prima.
+
+In Setup passo l'array dei byte contenenti la chiave/seed per il PRNG.
+[[./JNISpeaksWithC/PRNG.c][PRNG.c]]
+
+Leggiamo Setup.
+
+In JNI (Vedi Chap. 3 JNI.pdf, pgg.36-37) posso accedere ai parametri passati da Java mediante "env".
+env è un puntatore ad una tabella contenente le funzioni di interfaccia JNI. Ad es.
+ a. (*env)->GetArrayLength(env,keyin);
+ b. (*env)->GetByteArrayElements(env,keyin,0);
+ 
+Inoltre obj è il puntatore all'oggetto nativo istanziato (per chi conosce C++ una specie di "this" pointer: un puntatore a se stesso).
+
+Osserviamo inoltre che java mappa i tipi in C mediante sue "definizioni di tipi" come jsize e jbyte.
+
+Nella gestione degli array posso avere una copia dell'array keyin tramite
+  jbyte *key=(*env)->GetByteArrayElements(env,keyin,0);
+La JVM vedrà l'array keyin come utilizzato dalla funzione Setup, quindi il GC della JVM non potrà mai cancellarlo se non lo rilasciamo esplicitamente tramite
+  (*env)->ReleaseByteArrayElements(env, keyin, key, 0);
+Inoltre nella funzione PRNG, Out dovrà essere modificato.
+Quindi in questo caso 
+  (*env)->ReleaseByteArrayElements(env, Out, out, 0);
+Non solo rilascia ma modifica Out!
+
+** Un bug
+Purtroppo se lanciamo il programma
+./Run
+Osserviamo un comportamento anomalo:
+L'aver settato un secondo oggetto ha resettato il primo!
+
+** Risolviamo il bug
+Se volessimo creare un server che genera numeri random per più client con seed dovremmo quindi cambiare approccio.
+Una possibilità è di definire diversi stati in arc4, uno per ogni sessione tra (??0 e??) NRMAXARC4.
+
+[[./JNISpeaksWithManyCObjects/arc4Lib.h][arc4Lib.h]]
+
+Ecco una possibile implementazione
+[[./JNISpeaksWithManyCObjects/arc4Lib.c][arc4Lib.c]]
+
+Ora dobbiamo pilotare tutto ciò in Java. La soluzione è definire un costruttore!
+[[./JNISpeaksWithManyCObjects/arc4JNI.java][arc4JNI.java]]
+
+
+A questo punto il main diventa
+
+[[./JNISpeaksWithManyCObjects/arc4PRNG.java][arc4PRNG.java]]
+
+Che si comporta in modo corretto.
+
+Da completare la prossima settimana!

@@ -1,0 +1,248 @@
+* Un'integrazione tra Java e C: La Java Native Interface
+** Risolviamo il bug --> typedef e struct
+Se volessimo creare un server che genera numeri random per più client con seed dovremmo quindi cambiare approccio.
+Una possibilità è di definire diversi stati in arc4, uno per ogni sessione tra NRMAXARC4. Identficabili tramite un id:
+int id;
+[[./JNISpeaksWithManyCObjects/arc4Lib.h][arc4Lib.h]]
+
+Inoltre le variabili i e j di arc4KeyStream devono essere "legate" al particolare stato o se preferite id.
+
+In questo caso in C creiamo una "struct". Possiamo pensarlo come il "padre" del concetto di oggetto.
+
+Nella definizione:
+
+struct {
+ uint8_t state[256];
+ uint8_t i,j;
+} S[NRMAXARC4];
+
+Definisco una struct e contemporaneamente alloco un array di elementi definiti dalla struct, S[NRMAXARC4].
+
+Per accedere al campo/attributo di un elemento della struct uso l'operatore "." (vi ricorda qualcosa?).
+
+Dunque S[id].j è il campo j di S[id].
+
+Ecco la mia nuova implementazione di
+[[./JNISpeaksWithManyCObjects/arc4Lib.c][arc4Lib.c]]
+
+Ricordo inoltre che sia in C che in C++ si usano le definizioni (spesso anche con le struct)
+es 
+typedef int anni_t;
+
+in modo da poter definire successivamente
+anni_t a,b;
+Un esempio  è
+uint8_t byte;
+
+Si usa spesso con le struct in questo modo
+
+
+struct arc4 {
+ uint8_t state[256];
+ uint8_t i,j;
+};
+
+
+typedef struct arc4 arc4_t;
+
+Usando questo metodo avrei potuto definire un array
+
+arc4_t S[1000];
+
+analogamente a quanto fatto in
+
+[[./JNISpeaksWithManyCObjects/arc4Lib.c][arc4Lib.c]]
+
+Provatelo a casa.
+
+
+Ora dobbiamo pilotare tutto ciò in Java. La soluzione è definire un costruttore!
+[[./JNISpeaksWithManyCObjects/arc4JNI.java][arc4JNI.java]]
+
+
+A questo punto il main diventa
+
+[[./JNISpeaksWithManyCObjects/arc4PRNG.java][arc4PRNG.java]]
+
+Che si comporta in modo corretto.
+
+L'ultimo step è modificare PRNG.C che diventa 
+[[./JNISpeaksWithManyCObjects/PRNG.c][PRNG.c]]
+
+Qui abbiamo utilizzato il secondo parametro obj che mi permette di avere un puntatore:
+1) alla Classe;
+2) al campo della Classe;
+3) al campo dell'oggetto istanziato.
+
+** Esercizio
+Implementare un server che genera numeri random
+mediante la classe 
+[[./JNISpeaksWithManyCObjects/arc4JNI.java][arc4JNI]]
+modificando l'esercizio della 04Week.
+
+In particolare ricordiamo che il server deve lanciare esattamente 4 threads.
+
+Il server dovrà generare esattamente 500000 serie di 16 byte casuali per ogni thread (o se preferite client).
+Ovviamente ognuno dei 4 client dovrà a sua volta leggere 500000 serie di 16 byte.
+Client e Server si chiuderanno una volta lette/scritte le 500000 serie.
+
+Nota:
+1. Come test potete utilizzare il seed unico "pippo" per tutti e 4 i threads.
+2. writeDouble->writeByte (per ogni singolo byte)
+
+In circa 10  minuti il programma dovrebbe completare il calcolo.
+
+* Un esempio di chat in chiaro con Socket e thread
+Il seguente esempio di chat che vi descriverò è una versione da modificata e commentata che si trova nell'ottimo testo Java
+"Head First Java" di
+Kathy Sierra & Bert Bates
+Il libro è a tutti gli effetti un ottimo tutorial di introduzione (non banale) a Java.
+Purtroppo il tutorial è aggiornato al solo Java 5. Dunque non copre JavaFX.
+Quindi la GUI è aggiornata: Infatti nel libro si usa Swing, mentre noi useremo JavaFx.
+
+La chat ha un server centralizzato che stabilisce un connessione (tramite socket) con ogni singolo client.
+Quando il server riceve un nuovo messaggio da un client lo redistribuice a tutti (incluso il mittente).
+Quindi abbiamo due step:
+(1) Client ----Messaggio---> Server
+(2) Server ----Messaggio---> Tutti i clients
+
+Vediamo la chat in funzione!
+java VerySimpleChatServer
+
+java SimpleChatClientFX
+
+** Il Server.
+
+Nella implementazione gli autori utilizzano due classi annidate (nested in inglese). La prima VerySimpleChatServer e la seconda, annidata, ClientHandler.
+
+Per implementare (1) e (2) il server deve creare tanti "thread e socket" quanti sono i client. Questo è l'obbiettivo della classe annidata ClientHandler.  Quindi la classe implementa runnable.
+Cioè  ha un metodo run che
+a. legge l'eventuale input del client.
+b. Spedisce il messaggio a tutti.
+
+Il metodo in b. che gli autori chiamano "tellEveryone" è un metodo della enclosing (=che include, includente) class. Cioè della classe VerySimpleChatServer.
+Tale metodo può essere chiamato in modo naturale dalla classe annidata.
+
+Andiamo a leggere il sorgente commentato.
+[[./chat/VerySimpleChatServer.java][Chat server]]
+
+
+
+** Il Client.
+Anche qui gli autori utilizzano due classi annidate. La prima SimpleChatClient e la seconda annidata IncomingReader.
+
+In questo caso avremo solo due thread attivi:
+Il principale che è SimpleChatClient e quello derivante dall'unica istanza di IncomingReader.
+
+Nel primo thread è implementata l'interfaccia in JavaFX.
+Essa, una volta attiva, è in attesa del click sul pulsante di invio messaggio dal client.
+Inoltre, la stessa interfaccia riserva un'area per i messaggi in ingresso.
+Appena inizializzata l'interfaccia JavaFX, il thread principale lancia il secondo thread IncomingReader.
+
+Quest'ultimo rimane in attesa che il server invii qualche messaggio.
+Nel caso lo visualizza nell'area predisposta.
+
+[[./chat/SimpleChatClientFX.java][Chat client]]
+
+In classe, se abbiamo tempo, o a casa, aggiornate la chat e provate il funzionamento da computer diversi anche tra colleghi.
+
+* A5/1
+A5/1 come ARC4 è uno stream cypher. La sua struttura è pero molto diversa. Infatti ad esempio quest'ultimo genera un flusso di bit (e non byte). 
+
+Ma la maggiore differenza è il principale ingrediente di A5/1, cioè l'LFSR.
+
+
+L'algoritmo usa 3 registri LFSR che insieme formano 64 bit: 
+R1. 19 bit 
+R2. 22 bit
+R3. 23 bit
+
+
+Inoltre i 3 registri vengono pilotati dai 3 seguenti polinomi primitivi (Galois LFSR)
+R1 -> x^19+x^18+x^17+x^14+1
+R2 -> x^22+x^21+1
+R3 -> x^23+x^22+x^21+x^8+1
+
+Come ben sappiamo i polinomi primitivi di grado n, danno mediante gli LFSR un metodo efficiente per generare tutti gli elementi in (F2^n)*, e output bit che hanno ottime proprietà di pseudo-casualità.
+
+
+I tre registri concorrono a generare il bit di output tramite la somma (XOR) dei tre bit di output dei registri. Essi sono rispettivamente
+
+R1OUT 18
+R2OUT 21
+R3OUT 22
+
+N.B. I bit sono identificati dalla loro posizione partendo dal bit in posizione 0
+
+Per rendere il flusso più casuale si usano altri 3 bit che chiameremo bit di clock che sono
+
+R1CLOCKBIT  8
+R2CLOCKBIT 10
+R3CLOCKBIT 10
+
+Tramite i clock bit secondo una regola di maggioranza decido quale registro avanzare e quale lasciare fermo.
+Se almeno due dei tre clockbit hanno lo stesso valore allora i registri corrispondenti avanzano. L'altro, se esiste uno che  valore diverso, rimane fermo.
+
+** Primo Obbiettivo : Linear Feedback Shift Register (LFSR) 
+
+Come per le altre lezioni eccovi il 
+
+[[./Makefile][Makefile]] 
+
+
+
+Inoltre vi do il file dei prototipi (da completare), dove in particolare è presente una struttura utile per definire i 3 registri
+
+[[./A5.1.Lib.DaCompletare.h][A5.1.Lib.h]]
+
+
+A questo punto vi fornisco anche il main 
+[[./LFSR.c][LFSR]]
+
+Ricordiamo che il LFSR funziona nel modo seguente:
+R2 -> x^22+x^21+1
+      2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0
+      2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Out<-| | | | | | | | | | | | | | | | | | | | | | | |<-+
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+      | |                                             |
+      | |                                             |
+      +++                                             |
+       |                                              |
+       +----------------------------------------------+
+
+
+Algoritmo:
+Input: Word
+Output: Word and Output Bit
+1. Output bit (Out).
+2. Compute the Feedback 
+3. Word=Shifted Word | Feedback
+
+
+Nel mio main vediamo che l'output è calcolato e visualizzato tramite printOut, poi viene aggiornato il registro (punti 2 e 3) con updateRegister. 
+
+*** Feedback e parity
+Supponiamo di aver calcolato la parola wf, contenente solo i feedback (bit).
+Calcolare la somma dei feedback è equivalente a calcolare la parità di wf.
+
+D'altra parte se abbiamo una parola di lunghezza pari, posso considerare le due metà che la compongono e sommarle (in F2), ottenendo wf'. la parità di wf' è uguale alla parità di wf. Se wf' ha anch'essa lunghezza pari, posso reiterare il procedimento.
+
+E.g.
+
+parity(1010 1001)=
+parity (1010+1001)=parity(0011)=parity(00+11)=parity(11)=parity(1+1)=parity(0)=0
+
+Dunque se ho n bit in log(n) somme (e shift) ottengo la parità.
+
+
+Riepilogando: Implementate le funzioni :
+parity(...) 
+updateRegister(...) 
+Per le precedenti funzioni usate gli operatori bit oriented, serviranno un pò tutti!
+
+Queste due sono facili
+printRegister(...)
+printOut(...)
+

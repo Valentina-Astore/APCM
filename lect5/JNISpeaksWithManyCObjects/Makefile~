@@ -1,0 +1,26 @@
+all: arc4PRNG.class arc4JNI.class RndServ.class RndCli.class libarc4Lib.so
+
+arc4PRNG.class: arc4PRNG.java
+	javac arc4PRNG.java 
+
+arc4JNI.class: arc4JNI.java
+	javac arc4JNI.java 	
+
+RndServ.class: RndServ.java
+	javac RndServ.java 	
+
+RndCli.class: RndCli.java
+	javac RndCli.java 	
+
+arc4JNI.h: arc4JNI.java
+	javah arc4JNI
+
+arc4Lib.o: arc4Lib.c
+	gcc -c -fPIC arc4Lib.c	
+
+libarc4Lib.so: PRNG.c arc4Lib.o arc4JNI.h
+	gcc -I../../jdk1.8.0_341/include -I../../jdk1.8.0_341/include/linux -fPIC -shared -z noexecstack\
+		PRNG.c arc4Lib.o -o  libarc4Lib.so
+
+
+

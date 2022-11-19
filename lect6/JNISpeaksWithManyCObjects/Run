@@ -1,0 +1,4 @@
+#!/bin/bash
+java8 -Djava.library.path=. RndServ
+java8 -Djava.library.path=. RndCli
+

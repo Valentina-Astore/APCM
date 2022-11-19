@@ -1,0 +1,5 @@
+#!/bin/bash
+# In questo file, che ho creato per comodità, passo i paramtri necessari per lanciare il programma in Java.
+# In particolare "-Djava.library.path=." dice che la libreria nativa in C è nella directory corrente (.). 
+java -Djava.library.path=. arc4PRNG
+
