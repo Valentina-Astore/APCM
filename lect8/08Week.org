@@ -1,0 +1,191 @@
+* Crittografia in Java (continua)
+** Esercizio 
+
+Prendendo ispirazione dal precedente programma, implementarne uno che, tramite una GUI in JavaFX, fissato un file criptato ci permetta di visualizzarlo e modificarlo.
+
+In particolare il file da gestire (visualizzare/modificare) verrà passato come parametro da linea di comando.
+Inoltre vogliamo che  la parte di codifica e decodifica sia separata creando una classe ad hoc.
+E.g.
+
+public class FileDecoder {
+    byte [] keyBytes;
+    File file;
+    public FileDecoder(String fileName, String key) {};
+    public byte [] readFromFile() throws Exception {};
+    public void writeToFile(byte [] buffer) throws Exception {};
+}
+
+
+Nota:
+Appena lanciato la GUI in JavaFX chiederà la password e visualizzerà il file permettondone la modifica.
+L'utente potrà schiacciando il tasto "Save", aggiornare il file o chiudere l'applicazione senza effettuare alcuna modifica mediante il tasto "Close".
+
+Lancia l'eseguibile 
+java FileDecoderMain testo.crypted
+come pwd
+FabrizioDeAndre'
+
+
+
+
+** File XML: Un esempio FXML 
+Lo standard file XML, il cui cui capostipite è HTML è diventato pervasivo in tutte le comunicazioni informatiche dagli anni 90 ad oggi.
+Ad esempio tale linguaggio rappresenta, oltre alle pagine web, con HTML, protocolli crittografici, formule matematiche, dati geografici, ebook, etc.
+
+Tramite JavaFX è possibile definire una interfaccia grafica tramite FXML. Con questo strumento si isolano parti puramente grafiche (view) dell'applicazione da quelle che invece gestiscono l'interazione (controller) con l'utente e l'elaborazione dei dati (model).
+Quello schema che oggi si definisce come Model-view-controller.  
+
+Presento un programma scritto che tramite JavaFX lancia eseguibili da GUI.
+
+
+Eseguiamo 
+java ProgramLauncher
+e lanciamo 
+ls
+o 
+ls -alth
+
+Attenzione non funziona con
+ls *.java
+o 
+top
+
+Guardiamo prima di tutto il file fxml
+[[./PBLauncher/form.fxml][form.fxml]]
+
+Si può osservare che i tag fxml corrispondono a campi e strutture che già conosciamo in JavaFX.
+Inoltre tramite il css
+[[./PBLauncher/style.css][style.css]]
+definisco colori, font, immagini in background.
+
+Il main  
+[[./PBLauncher/ProgramLauncher.java][ProgramLauncher]]
+non fa altro che caricare ed interpretare il file fxml.
+
+Viceversa il
+[[./PBLauncher/formController.java][formController]]
+
+fa da controller della view definita da fxml. Qui il model è più che altro l'eseguibile esterno...
+
+E' interessante notare che la classe ProcessBuilder permetta di eseguire file eseguibili esterni.
+E' l'analogo del comando exec del process manager del SO (Unix/Windows).
+Per approfondimenti vedi
+[[https://en.wikipedia.org/wiki/Exec_(system_call)][exec]]
+
+
+Può essere carino utilizzare fxml nel progetto finale!	//Prova a guardare SCENE BUILDER per creare interfacce grafiche più agevolmente.
+
+* AES o Rijndael
+In questo tutorial scriveremo tutte le componenti per la criptazione di un messaggio tramite AES.
+Reference:
+Cryptography in C and C++
+
+
+** La storia di AES alias Rijndael
+Nel 1997 viene indetta una competizione internazionale dal NIST per soppiantare DES e triple DES. Cioè si cerca l'algoritmo AES.
+
+
+Dopo una selezione accurata nell'ottobre del 2000 la competizione viene vinta dal team belga (J. Daemen e V. Rijmen): Rijndael.
+I parametri della scelta sono
+1. Sicurezza
+2. velocità
+3. Richiesta di memoria
+4. Implementazione in hardware
+Su tutti i parametri Rijndael è quello più performante 
+
+L'algoritmo è il successore di un algoritmo degli stessi autori detto Square (quest'ultimo più debole).
+Infatti si agisce su una matrice 4x4 le cui entrate sono byte.
+
+Questi byte li possiamo vedere come elementi del campo F256 che chiameremo da ora in poi F.
+
+Esso è definito come anello quoziente
+F2[x]/(x^8+x^4+x^3+x+1)
+Nota che x^8+x^4+x^3+x+1 non è primitivo.
+
+
+Inoltre gli autori considerano la "word" come la parola a 32 bit. Utilizzando ove possibile le potenzialità dei processori al tempo in voga.
+
+Praticamente possiamo vedere ogni colonna della matrice o come una singola word o come i 4 byte che la costituiscono.
+
+Ricordiamo che il cifrario AES ha tre possibili implementazione in funzione dei round e della lunghezza delle chiavi
+Round Key
+10    128 bit
+12    192 ""
+14    256 ""
+Inoltre Rijndael nel suo algoritmo originale poteva processare blocchi di 128, 192 e 256 bit. AES invece nello stamdard può invece processare per tutte e tre le implementazioni blocchi di 128 bit.
+
+Per semplicità implementeremo AES128 (10 round e chiave di 128 bit).
+
+** Il key schedule
+Per ottenere 10 round sono necessarie 10 chiavi di round derivate dalla prima.
+
+Ricordiamo che la nostra chiave è costituita fatta da 128/8=16 byte.
+Come chiave di test consideriamo quella presente in
+[[./AESKeySched.c][Main del Key schedule]]
+
+Rappresento la chiave di partenza come una matrice, dove WORDS_IN_KEY è il numero di parole nella chiave.
+Essendo essa di 128 bit avremo 4 parole (di 32 bit), BYTES_IN_WORD è il numero di byte nella singola parola (4*8=32).
+Quindi definisco in 
+[[./AES.Lib.h][AES.Lib.h]]
+le costanti di preprocessore.
+
+ 
+
+Osserviamo insieme lo schema del key schedule
+[[./AES-Key_Schedule_128-bit_key.svg][Key schedule]]
+
+Osserviamo che:
+I 16 byte vengono distributi in modo da formare 4 colonne di una matrice 4x4.
+
+Ogni colonna (o se preferite word di 32 bit) j=2,3,4 della chiave i-esima è la somma della colonna (j-1)-esima (colonna precedente) sommato (tramite xor) con la colonna j-esima ma della chiave (i-1)-esima (colonna sovrastante).
+Fa eccezione la prima colonna (j=1) che viene ottenuta tramite la colonna 4 della chiave precedente alla quale si applicano rispettivamente:
+1) RotWord:
+2) SubWord;
+3) Somma di Rcon.
+Alla colonna ottenuta si deve al solito sommare la colonna sovrastante.
+
+1) RotWord ruota la parola di 4 byte di un byte verso il basso.
+Dunque
+(b0,b1,b2,b3)->(b1,b2,b3,b0)
+2) Su ognuno dei singoli byte applico la SubWord, cioè la SBox.
+Ricordiamo che la SBox comporta la cosiddetta "confusione". Quindi è fortemente non lineare. Nel caso di AES è determinata dalla funzione
+f(x)=1/x
+ponendo 
+f(0)=0
+A questa si aggiunge una trasformazione affine in modo da evitare punti uniti.
+| 1 0 0 0 1 1 1 1 | |x0|   |1| 
+| 1 1 0 0 0 1 1 1 | |x1|   |1|
+|     ...         | |..|   |0| 
+|     ...         | |..| + |0| 
+|     ...         | |..|   |0| 
+|     ...         | |..|   |1| 
+|     ...         | |..|   |1| 
+| 0 0 0 1 1 1 1 1 | |x7|   |0| 
+
+Per semplificare il lavoro in
+[[./AESStuff.c][Stuff]]
+In SBox ho la lookup table.
+E.g.
+SubWord(i) ---> SBox[i];
+ 
+3) La Rcon (round constant) è sommata al primo byte della parola.
+La Rcon(i) è semplice da calcolare. Infatti non è altro che la potenza (i-1)-esima di x in F.
+Dunque considerando il byte come un polinomio in F abbiamo in formato esadecimale  e binario:
+RCon(1)=x^0=0x01=0000|0001
+RCon(2)=x^1=0x02=0000|0010
+RCon(3)=x^2=0x04=0000|0100
+RCon(4)=x^3=0x08=0000|1000
+RCon(5)=x^4=0x10=0001|0000
+RCon(6)=x^5=0x20=0010|0000
+RCon(7)=x^6=0x40=0100|0000
+RCon(8)=x^7=0x80=1000|0000
+Dato che x^8=x^4+x^3+x+1 ottengo
+RCon(9)=x^8=0x1B=0001|1011
+e 
+RCon(10)=x^9=0x36=0011|0110
+Questi valori li precalcoliamo come per SBox in
+[[./AESStuff.c][Stuff]]
+
+** Esercizio 
+Implementa   
+roundKeyGen(roundKey,Key);

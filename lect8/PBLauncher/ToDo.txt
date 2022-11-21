@@ -1,0 +1,13 @@
+Non tutti i comandi vengono eseguiti.
+Ad esempio
+>ls -alth *.java
+non funziona
+>ls -alth /Users
+si.
+Infatti le wildcard possono essere utilizzate solo da shell!
+
+
+Se inserisco un programma che attende un input il programma si
+blocca. Ad esempio:
+>wc
+>top

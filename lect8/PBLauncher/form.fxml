@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+
+<GridPane fx:controller="formController" 
+	  xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10"
+	  styleClass="root">
+  <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+    
+  <Text id="welcome-text" text="Program launcher" 
+        GridPane.columnIndex="0" GridPane.rowIndex="0"
+        GridPane.columnSpan="2"/>
+    
+  <Label text="Program and parameters (separated by a single-space!):"
+         GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+ 
+    
+  <TextField fx:id="programField"
+             GridPane.columnIndex="0" GridPane.rowIndex="2"
+	     GridPane.columnSpan="2"/>
+ 
+    
+  <HBox spacing="10" alignment="bottom_right" 
+        GridPane.columnIndex="1" GridPane.rowIndex="4">
+    <Button fx:id="submitButton" text="Submit"     
+            onAction="#handleSubmitButtonAction"/>
+  </HBox>
+
+
+  <Label text="Standard output:"
+         GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+ 
+  <TextArea fx:id="outputField" 
+            GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.columnSpan="2"/>
+
+  <Label text="Standard error/Java Exception:"
+         GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+ 
+   
+  <TextArea fx:id="errorField" 
+            GridPane.columnIndex="0" GridPane.rowIndex="9" GridPane.columnSpan="2"/>
+        
+
+  <stylesheets>
+    <URL value="@style.css" />
+  </stylesheets>
+
+</GridPane>
