@@ -1,5 +1,5 @@
 #!/bin/bash
 git add *
-git commit -m "Material of lecture 8 uploaded (exercise mad during class)"
+git commit -m "Material of lecture 9 Part 1 uploaded (exercise made during class)"
 git push -u origin main
 
