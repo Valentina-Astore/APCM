@@ -48,6 +48,8 @@ int main(){
     if(i%16==0) printf("\n");
     printf("%02X", in[i]);
     printf(" ");
+    //print8bit(in[i]);
+    //printf("\n");
   }
         
   printf("\n");

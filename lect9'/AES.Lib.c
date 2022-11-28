@@ -228,3 +228,11 @@ void encryptCBC(uint8_t buf[] ,int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS
 		encryptAES(buf, roundKey);	
 	}
 }
+
+void print8bit(uint8_t byte) {
+
+	for(int i = 7; i > 0; i--) {
+		printf("%c", ((byte >> i) & 1) ? '1' : '0');
+	}
+	printf("%c", (byte & 1) ? '1' : '0');
+}

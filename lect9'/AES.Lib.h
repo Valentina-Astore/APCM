@@ -33,5 +33,6 @@ void CBC(uint8_t buf[BLOCK_SIZE], uint8_t vec[BLOCK_SIZE]);
 
 // Cripta l'intero buffer chiamando cbc all'inizio di ogni cripazione di blocco.
 void encryptCBC(uint8_t buf[] ,int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uint8_t iv[BLOCK_SIZE]);
-//void print8bit(uint8_t byte);
+
+void print8bit(uint8_t byte);
 
