@@ -31,7 +31,8 @@ int main(){
   }
   
   /*
-  // Modificato da qui
+  // Modificato da qui -----------------------------------
+  
   uint8_t state[WORDS_IN_KEY][BYTES_IN_WORD];
   for(int i = 0; i < WORDS_IN_KEY; i++){
 		for(int j = 0; j < BYTES_IN_WORD; j++){
@@ -46,7 +47,12 @@ int main(){
 	subBytes(state);
 	printState(state);
 	shiftRows(state);
-	printState(state);	
+	printState(state);
+	printf("--------\n");
+	mixColumns(state);
+	printState(state);
+
+  // Fino a qui ------------------------------------------
   */  
 
   printf("\nInput:\n");
@@ -57,7 +63,7 @@ int main(){
   }
   printf("\n");
   
-  encryptAESSimply(in, 64, roundKey);
+  encryptSimply(in, 64, roundKey);
   
   printf("\nOutput:\n");
   for(i=0;i<64;i++) {
@@ -65,8 +71,7 @@ int main(){
     printf("%02X", in[i]);
     printf(" ");
   }
-  
-  
+        
   printf("\n");
  
 }

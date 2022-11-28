@@ -1,3 +1,6 @@
+/*
+
+ */
 #include <stdio.h>
 #include <inttypes.h>
 #include "AES.Lib.h"
@@ -23,41 +26,22 @@ int main(){
   for(i=0;i<=NR_ROUNDS;i++) {
     for(j=0;j<WORDS_IN_KEY;j++){
       for(k=0;k<BYTES_IN_WORD;k++){
-	      printf("%2X ", roundKey[i][j][k]);
+	printf("%02X ", roundKey[i][j][k]);
       }
       printf("    ");
     }
     printf("\n");
   }
-  
-  /*
-  // Modificato da qui
-  uint8_t state[WORDS_IN_KEY][BYTES_IN_WORD];
-  for(int i = 0; i < WORDS_IN_KEY; i++){
-		for(int j = 0; j < BYTES_IN_WORD; j++){
-			state[i][j]	= in[4*j+i];
-  	}
-  }
-  
-  printf("\n");
-  printState(state);
-  addRoundKey(0, state, roundKey);
-  printState(state);
-	subBytes(state);
-	printState(state);
-	shiftRows(state);
-	printState(state);	
-  */  
 
   printf("\nInput:\n");
   for(i=0;i<64;i++) {
-    if(i%16==0) printf("\n");
-    printf("%02X", in[i]);
-    printf(" ");
+     if(i%16==0) printf("\n");
+     printf("%02X", in[i]);
+     printf(" ");
   }
+
   printf("\n");
-  
-  encryptAESSimply(in, 64, roundKey);
+  encrypt(in,64, roundKey);
   
   printf("\nOutput:\n");
   for(i=0;i<64;i++) {
@@ -65,10 +49,9 @@ int main(){
     printf("%02X", in[i]);
     printf(" ");
   }
-  
-  
+        
   printf("\n");
- 
+
 }
 
 

@@ -34,13 +34,13 @@ int main(){
   }
 
   printf("\nInput:\n");
-  /* for(i=0;i<64;i++) { */
-  /*   if(i%16==0) printf("\n"); */
-  /*   print8bit(in[i]); */
-  /*   printf(" "); */
-  /* } */
+  for(i=0;i<64;i++) {
+     if(i%16==0) printf("\n");
+     print8bit(in[i]);
+     printf(" ");
+  }
 
-  /* printf("\n"); */
+  printf("\n");
   encrypt(in,64, roundKey);
   
   printf("\nOutput:\n");
