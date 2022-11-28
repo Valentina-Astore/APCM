@@ -8,9 +8,9 @@ public class RndServ {
             ServerSocket ss = new ServerSocket(2022);
 
             byte Key1[]={'p','i','p','p','o'};
-            byte Key2[]={'p','u','p','p','o'};
-            byte Key3[]={'p','a','p','p','o'};
-            byte Key4[]={'p','o','p','p','o'};
+            byte Key2[]={'p','i','p','p','o'};
+            byte Key3[]={'p','i','p','p','o'};
+            byte Key4[]={'p','i','p','p','o'};
 
             arc4JNI arc4_1 = new arc4JNI();
             arc4JNI arc4_2 = new arc4JNI();
