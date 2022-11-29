@@ -1,6 +1,8 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
+/*
+ VERSIOONE INCOMPLETA E MODIFICATA DELLA LIBRERIA FATTA A LEZIONE.
+ Le funzioni non necessarie sono state rimosse e la funzione di encryption è stata modificata in modalità CFB.
+*/
+
 #include "AES.Lib.h"
 #include "AESStuff.c"
 
@@ -15,6 +17,16 @@ void printState(uint8_t state[4][4]){
 	printf("\n");
 }
 
+
+void print8bit(uint8_t byte) {
+
+	for(int i = 7; i > 0; i--) {
+		printf("%c", ((byte >> i) & 1) ? '1' : '0');
+	}
+	printf("%c", (byte & 1) ? '1' : '0');
+}
+
+
 void roundKeyGen(uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uint8_t Key[WORDS_IN_KEY][BYTES_IN_WORD]){
 	
 	for(int i = 0; i < WORDS_IN_KEY; i++){
@@ -22,7 +34,6 @@ void roundKeyGen(uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uin
 			roundKey[0][i][j] = Key[i][j];
 		}
 	}
-	
 	
 	for(int i = 1; i <= NR_ROUNDS; i++){
 		
@@ -110,7 +121,7 @@ void mixColumns(uint8_t state[4][4]){
 	// alla j-esima iterazione riempiamo la j-esima colonna di state
 	for(uint8_t j = 0; j < WORDS_IN_KEY; j++) {
 		
-		uint8_t b[4];
+		uint8_t b[BYTES_IN_WORD];
 		
 		for (uint8_t i = 0; i < BYTES_IN_WORD; i++) {
 			b[i] = state[i][j];
@@ -131,19 +142,23 @@ void mixColumns(uint8_t state[4][4]){
 
 }
 
+// CAMBIATO DA QUI --------------------------------------------------------------------------------
 
+
+// Cifra un singolo blocco AES128 di dimensione BLOCK_SIZE.
 void encryptAES(uint8_t buf[], uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD]){
 
 	uint8_t state[WORDS_IN_KEY][BYTES_IN_WORD];
-	
-	static int k = 0;
 	for(int i = 0; i < WORDS_IN_KEY; i++){
 		for(int j = 0; j < BYTES_IN_WORD; j++){
-			state[i][j] = buf[k+(4*j+i)];
+			state[i][j] = buf[4*j+i];
   		}
 	}
 
+	// Whitening.
 	addRoundKey(0, state, roundKey);
+	
+	// NR_ROUNDS-1 rounds completi.
 	for(int r = 1; r < NR_ROUNDS; r++){
 		subBytes(state);
 		shiftRows(state);
@@ -151,43 +166,67 @@ void encryptAES(uint8_t buf[], uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES
 		addRoundKey(r, state, roundKey);		
 	}
 
+	// Ultimo round atipico.
 	subBytes(state);
 	shiftRows(state);
 	addRoundKey(NR_ROUNDS, state, roundKey);
 
 	for(int i = 0; i < WORDS_IN_KEY; i++){
 		for(int j = 0; j < BYTES_IN_WORD; j++){
-			buf[k+(4*j+i)] = state[i][j];
+			buf[4*j+i] = state[i][j];
   		}
 	}
-	
-	k += BLOCK_SIZE;
 }
 
-// DA CAMBIARE
-void CBC(uint8_t buf[BLOCK_SIZE], uint8_t vec[BLOCK_SIZE]) {
+
+// Ritorna lo XOR degli input sovrascrivendo il primo dei due.
+void XOR(uint8_t buf[BLOCK_SIZE], uint8_t vec[BLOCK_SIZE]) {
 
 	for(int i = 0; i < BLOCK_SIZE; i++){
 		buf[i] ^= vec[i];
 	}
 }
 
-// DA CAMBIARE
-void encryptCFB(uint8_t buf[] ,int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uint8_t iv[BLOCK_SIZE]){
+// Ritorna lo XOR degli input sovrascrivendo il primo dei due (di dimensione len < BLOCK_SIZE).
+void shortXOR(uint8_t buf[], uint8_t vec[BLOCK_SIZE], int len) {
 
-	CBC(buf, iv);
-	encryptAES(buf, roundKey);
-
-	for(int i = 1; i < (inlength/BLOCK_SIZE); i++) {
-		CBC(buf+(BLOCK_SIZE*i), buf+(BLOCK_SIZE*(i-1)));
-		encryptAES(buf, roundKey);	
+	for(int i = 0; i < len; i++){
+		buf[i] ^= vec[i];
 	}
 }
 
-void print8bit(uint8_t byte) {
 
-	for(int i = 7; i > 0; i--) {
-		printf("%c", ((byte >> i) & 1) ? '1' : '0');
+// Cifra un intero buffer di plaintext usando AES128 in modalità CFB. Il buffer viene sovrascritto con il ciphertext ottenuto.
+void encryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uint8_t iv[BLOCK_SIZE]){
+ 
+	// Numero blocchi di dimesione BLOCK_SIZE completi. La divisione ritona automaticamente il floor.
+	int regularBlocks = inlength/BLOCK_SIZE;
+	
+	uint8_t previousCiphertextBlock[BLOCK_SIZE];
+	for(int j = 0; j < BLOCK_SIZE; j++){
+		previousCiphertextBlock[j] = iv[j];
 	}
-	printf("%c", (byte & 1) ? '1' : '0');
+	
+	for(int i = 0; i < regularBlocks; i++) {
+		
+		encryptAES(previousCiphertextBlock, roundKey);	
+		XOR(buf+(BLOCK_SIZE*i), previousCiphertextBlock);
+		
+		for(int j = 0; j < BLOCK_SIZE; j++){
+			previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*i)];
+		}
+	}
+	
+	int residuals = inlength - (regularBlocks*BLOCK_SIZE);	// dimensione del blocco finale (< BLOCK_SIZE).
+	if (residuals != 0){
+		for(int j = 0; j < BLOCK_SIZE; j++){
+			previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*(regularBlocks-1))];
+		}
+		
+		encryptAES(previousCiphertextBlock, roundKey);
+		shortXOR(buf+(BLOCK_SIZE*regularBlocks), previousCiphertextBlock, residuals);
+	}
 }
+
+// A QUI ------------------------------------------------------------------------------------------
+

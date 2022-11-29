@@ -1,8 +1,8 @@
-all: Client.class Server.class 
+all: AESTest
 
-Client.class: Client.java
-	javac8 Client.java
+AESTest: AESTest.c AES.Lib.o
+	gcc AESTest.c -o AESTest AES.Lib.o
 
-Server.class: Server.java
-	javac8 Server.java
+AES.Lib.o : AES.Lib.c AES.Lib.h
+	gcc -c AES.Lib.c
 
