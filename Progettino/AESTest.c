@@ -2,11 +2,8 @@
 
 int main(){
   int i,j,k;
-  uint8_t Key[WORDS_IN_KEY][BYTES_IN_WORD]=
-    {{0x2b,0x7e,0x15,0x16},
-     {0x28,0xae,0xd2,0xa6},
-     {0xab,0xf7,0x15,0x88},
-     {0x09,0xcf,0x4f,0x3c}};
+  
+  uint8_t Key[WORDS_IN_KEY][BYTES_IN_WORD]= {{0x2b,0x7e,0x15,0x16},  {0x28,0xae,0xd2,0xa6},  {0xab,0xf7,0x15,0x88},  {0x09,0xcf,0x4f,0x3c}};
 
   uint8_t in[]  = { 0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a,
 		    0xae, 0x2d, 0x8a, 0x57, 0x1e, 0x03, 0xac, 0x9c, 0x9e, 0xb7, 0x6f, 0xac, 0x45, 0xaf, 0x8e, 0x51,
@@ -18,6 +15,7 @@ int main(){
   uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD];
   roundKeyGen(roundKey,Key);
 
+  /*
   printf("Round Key generated.\n");
   for(i=0;i<=NR_ROUNDS;i++) {
     for(j=0;j<WORDS_IN_KEY;j++){
@@ -28,26 +26,39 @@ int main(){
     }
     printf("\n");
   }
+  */
 
   printf("\nInput:\n");
-  for(i=0;i<17;i++) {
-     if(i%63==0) printf("\n");
+  for(i=0;i<63;i++) {
+     if(i%16==0) printf("\n");
      printf("%02X", in[i]);
      printf(" ");
   }
 
   printf("\n\n");
-  encryptCFB(in,63, roundKey, iv);
+  encryptCFB(in,63, roundKey);
   
-  printf("\nOutput:\n");
-  for(i=0;i<64;i++) {
+  printf("\nCiphertext:\n");
+  for(i=0;i<63;i++) {
     if(i%16==0) printf("\n");
     printf("%02X", in[i]);
     printf(" ");
     //print8bit(in[i]);
     //printf("\n");
   }
-        
+  
+  printf("\n\n");
+  decryptCFB(in,63, roundKey);
+  
+  printf("\nPlaintext:\n");
+  for(i=0;i<63;i++) {
+    if(i%16==0) printf("\n");
+    printf("%02X", in[i]);
+    printf(" ");
+    //print8bit(in[i]);
+    //printf("\n");
+  }
+       
   printf("\n");
 
 }

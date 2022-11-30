@@ -228,5 +228,52 @@ void encryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS
 	}
 }
 
+
+// Decifra un intero buffer di ciphertext usando AES128 in modalità CFB. Il buffer viene sovrascritto con il messaggio ottenuto.
+void decryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD]){
+ 
+	// Numero blocchi di dimesione BLOCK_SIZE completi. La divisione ritona automaticamente il floor.
+	int regularBlocks = inlength/BLOCK_SIZE;
+	
+	uint8_t encryptedtBlock[BLOCK_SIZE];
+	uint8_t previousCiphertextBlock[BLOCK_SIZE];
+	for(int j = 0; j < BLOCK_SIZE; j++){
+		previousCiphertextBlock[j] = iv[j];
+	}
+	
+	for(int i = 0; i < regularBlocks; i++) {
+		
+		for(int j = 0; j < BLOCK_SIZE; j++){
+			encryptedtBlock[j] = previousCiphertextBlock[j];
+		}
+		
+		encryptAES(encryptedtBlock, roundKey);
+		
+		for(int j = 0; j < BLOCK_SIZE; j++){
+			previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*i)];
+		}
+		
+		XOR(buf+(BLOCK_SIZE*i), encryptedtBlock);
+
+	}
+	
+	int residuals = inlength - (regularBlocks*BLOCK_SIZE);	// dimensione del blocco finale (< BLOCK_SIZE).
+	if (residuals != 0){
+	
+		for(int j = 0; j < BLOCK_SIZE; j++){
+			encryptedtBlock[j] = previousCiphertextBlock[j];
+		}
+		
+		encryptAES(encryptedtBlock, roundKey);
+		
+		for(int j = 0; j < BLOCK_SIZE; j++){
+			previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*(regularBlocks-1))];
+		}
+		
+		shortXOR(buf+(BLOCK_SIZE*regularBlocks), encryptedtBlock, residuals);
+
+	}
+}
+
 // A QUI ------------------------------------------------------------------------------------------
 
