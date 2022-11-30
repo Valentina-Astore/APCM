@@ -5,6 +5,8 @@ import java.net.*;
 
 
 public class Client {
+
+    static String[] titlesArray = {"ricetta torta alle mele", "testo La Guerra Di Piero"};
     
     static int i; static int j;
 
@@ -13,15 +15,13 @@ public class Client {
 	String ip;
 	if(args.length>0) ip=args[0];
 	else ip="127.0.0.1";
-
-    String[] titles = {"brontolo", "mammolo", "pisolo", "cucciolo", "dotto", "gongolo", "eolo"};
     
 
     try {
 	     Socket s=new Socket(ip,2022);
         
         // stampa dei titoli disponibili
-        for (i=0; i<titles.length; i++){System.out.println("file "+ i + ":  " + titles[i]);}
+        for (i=0; i<Client.titlesArray.length; i++){System.out.println("file "+ i + ":  " + Client.titlesArray[i]);}
 
         // scelta del titolo da console
         Console console = System.console();
@@ -30,12 +30,24 @@ public class Client {
             System.exit(0);
         }
 	    String title = new String(console.readPassword(">"));
-
+        
         // invio titolo
         DataOutputStream writer=new DataOutputStream(s.getOutputStream());
-        writer.writeInt(title.length());
-        byte titleBytes[] = encrypt(title);
-        for(i = 0; i < title.length(); i++){writer.writeByte(titleBytes[i]);}
+//        writer.writeInt(title.length());
+        
+        AES_CFB cipher = new AES_CFB();
+        cipher.Setup("Client");
+        
+        
+        byte titleBytes[] = cipher.encrypt(title);
+        
+        writer.writeInt(titleBytes.length);
+        for(i = 0; i < titleBytes.length; i++){
+            writer.writeByte(titleBytes[i]);
+//            System.out.println(titleBytes[i]);
+        }
+        
+//        for(i = 0; i < title.length(); i++){writer.writeChar(title.charAt(i));}   //versione di prova in cui viene inviato il testo in chiaro
 
 //        
 //        

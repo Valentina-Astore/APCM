@@ -8,6 +8,7 @@ public class Server /*implements Runnable */{
     static int i; static int j;
 
 
+
 //    public void run(){
 //	String threadName=Thread.currentThread().getName();
 //	// non serve a niente
@@ -59,24 +60,47 @@ public class Server /*implements Runnable */{
         
         // Il primo elemento letto è la lunghezza della stringa del titolo, poi vengono letti uno ad uno i caratteri del titolo
         
-        int inputLenght = reader.readInt();
-        byte titleBytes[inputlenhth];
+        int inputLength = reader.readInt();
+        byte[] titleBytes = new byte[inputLength];
 
-        for(i = 0; i < inputLenght; i++){
+        for(i = 0; i < inputLength; i++){
             titleBytes[i] = reader.readByte();
+//            System.out.println(titleBytes[i]);
         }
 
-//        decryption di titleBytes
+//        decryption di titleBytes MANCA LA DECRYPTION
 
-        String title = "";
-        for(i = 0; i < inputLenght; i++){
-            title += String.valueOf(reader.readChar());
-        }
-        System.out.println(title);
+//        String title = "";
+//        for(i = 0; i < inputLength; i++){
+//            title += String.valueOf(reader.readChar());
+//        }
+//        System.out.println(title);
 
-//
-//
-//        // cifratura e invio contenuto file
+
+
+
+
+
+
+        //Apertura del file da inviare
+//        try{
+//            File contentFile = new File("./ServerDatabase/"+title+".txt");
+//            FileInputStream contentStream = new FileInputStream(contentFile);
+//            char c;
+//            while((c = (char) contentStream.read()) != (char)-1){
+//                System.out.print(c);
+//            }
+//        }catch(Exception e){
+//        System.out.println("Error in opening the file from ServerDatabase");
+//        e.printStackTrace();
+//        }
+
+
+
+
+
+
+      // cifratura e invio contenuto file
 //        
 //        DataOutputStream writer=new DataOutputStream(s.getOutputStream());
 //        

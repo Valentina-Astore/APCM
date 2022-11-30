@@ -1,0 +1,5 @@
+Dal punto di vista della sicurezza: 
+
+- inviare in chiaro la lunghezza del plaintext potrebbe non essere gran ché per quanto riguarda la segretezza della comunicazione (probabilmente i titoli avranno lunghezza diversa, in quel caso la sicurezza è davvero imbarazzante) => sarebbe da inventare un padding, anche stravagante
+
+- 

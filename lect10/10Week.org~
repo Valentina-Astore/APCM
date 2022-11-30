@@ -1,0 +1,291 @@
+* Pipe Vs JNI
+Nella prima lezione ho annunciato che per l'interazione tra C e Java all'interno del progetto finale, un modo alternativo all'uso della JNI è dato dalle (named) pipe.
+
+Come già detto (nella prima settimana) i sistemi Unix (quindi anche Mac/Linux) hanno dei file speciali detti pipe. Questi a tutti gli effetti sono buffer in memoria RAM che, solo per semplicità di interfaccia, si presentano come file. Essi sono un metodo standard per l'IPC dei S.O. Unix-like (vedi anche POSIX, più in basso).
+
+Ricordiamo che per creare una pipe dobbiamo eseguire:
+mkfifo Java2C001
+
+In questo modo creiamo un a pipe (first in first out) nella quale uno dei processi scrive,  l'altro legge. La pipe si può anche creare dentro il programma. Noi per semplicità la creiamo da linea di comando.
+
+E' necessario che i due processi siano sincronizzati sulla stessa pipe. La dimensione della pipe è limitata. E' nell'ordine dei Kbytes (4-64 Kbytes). 
+
+Inoltre se volessimo avere un canale bi-direzionale dovremmo creare una seconda pipe esattamente simmetrica alla prima, e.g.
+mkfifo C2Java001
+
+E' importante che entrambi i processi "chiudano" le pipe alla conclusione della sessione di lavoro.
+
+Nell'esempio seguente, che è una "beta-release", ho scritto due programmi, uno in C ed uno in Java, che eseguono un compito analogo ad arc4PRNG che generava numeri random (cfr. 05Week, dove veniva usata la libreria in C "arc4" e l'interfaccia JNI).
+
+Anche in questo caso vogliamo 4 thread paralleli in java che siano in connessione tramite pipe a 4 processi paralleli (sviluppati in C).
+Questi ultimi sono i reali generatori dei numeri random. Lo schema è:
+
+Il thread "1" di Java richiede all'eseguibile in C (associato ad "1") un certo numero di valori casuali, tramite la pipe Java2C001, ed il programma in C li calcola e li invia al thread tramite la pipe C2Java001.
+
++--------+     Java2C       +---------+
+|        |>---------------->|         |
+|  Java  |                  |    C    | 
+|        |<----------------<|         |
++--------+     C2Java       +---------+
+
+
+In modo analogo per i thread "2", "3" e "4".
+
+Quindi devo eseguire da terminale
+mkfifo Java2C00i i=1,...,4
+mkfifo C2Java00i i=1,...,4
+
+Quindi lanciare i 4 processi su 4 terminali distinti
+./PRNG i pippo 
+con i=1,...,4
+
+Tali processi attenderanno le richieste dei rispettivi thread di Java sulle pipe Java2C00i. Il programma in Java, RandomThreadServer, lancerà i 4 thread.
+
+Non appena eseguirò un RandomThreadClient  esso si connetterà a RandomThreadServer che farà da ponte ai 4 processi lanciati.
+
+Guardiamo il 
+[[./ARC4PRNGWithPipe/Makefile][Makefile]]
+
+Guardiamo dunque il file commentato
+[[./ARC4PRNGWithPipe/PRNG.c][PRNG.c]]
+Nota bene:
+Il programma non è portabile su piattaforme non POSIX.
+Vedi:
+https://en.wikipedia.org/wiki/POSIX
+
+
+Infine il seguente programma in java è molto simile a quello delle JNI
+[[./ARC4PRNGWithPipe/RandomThreadServer.java][RandomThreadServer.java]]
+Mentre RandomThreadClient.java è identico (ovviamente).
+
+Quello che cambia in modo sostanziale è
+[[./ARC4PRNGWithPipe/arc4.java][arc4.java]]
+
+** Esercizio 
+L'esercizio dovrà essere sviluppato in due step:
+1) Analisi e scrittura delle specifiche (40 minuti);
+2) Sviluppo del progetto (48 ore a partire dalla consegna di 1).
+
+Le specifiche di massima sono:
+Dobbiamo creare un  sistema giocattolo cifratore e decifratore simmetrico usando uno degli algoritmi già sviluppati (ARC4, A5/1 o anche AES128). Siete liberi di scegliere cosa crittare (testi, immagini, video, chat).
+
+Il sistema deve avere almeno due processi in background per cifrare/decifrare sviluppati in C.
+
+Tali processi dovranno comunicare con il/i programma/i in java tramite pipe. 
+
+Se avete difficoltà di sistema (vedi Windows) a usare le pipe potrete usare dei normali file.
+Ricordate di fare flush. Anche in questo caso scrivetelo nelle specifiche.
+
+I programmi in java sono a tutti gli effetti l'interfaccia verso l'utente. 
+
+Nelle specifiche dovete inoltre dire che interfaccia utilizzerete, cioè console,  JavaFX, JavaFX + fxml. 
+
+Potete o meno usare i socket.
+
+Considerate che avrete solo 48 ore. 
+
+
+Il progettino dovrà essere consegnato come file tgz con all'interno un Makefile per la compilazione ed un file README con una breve descrizione per l'utilizzo.
+Il progettino potrà essere sviluppato in coppia.
+
+In caso non riusciate a completare il programma dovrete comunque consegnarlo entro e non oltre le 48 ore, scrivendo nel README cosa non è completo/non funziona etc.
+
+Come esempio di possibile consegna del punto (2) su Moodle trovate il file ARC4PRNGWithPipe.tgz
+
+Sia (1) che (2) dovranno essere inviati alla mia email con Oggetto rispettivamente:
+
+APCM Analisi  Toy  Cognome1 [Cognome2]
+APCM Sviluppo Toy  Cognome1 [Cognome2] con allegato tgz
+
+
+
+
+* GMP: GNU Multiple Precision (Arithmetic Library)
+GMP è una libreria open source, scritta in C, per il calcolo a precisione arbitraria su interi, frazioni di interi e numeri a virgola mobile.
+Noi useremo alcune funzioni per la manipolazione di interi in C.
+
+** Un piccolo HowTo
+
+Qui presento un breve HowTo. Per un approfondimento vedi il manuale 
+GNU MP
+presente nei file pdf allegati al corso.
+
+*** File header e compilazione
+Installare in Ubuntu
+sudo apt install libgmp-dev
+Su Mac usare Macports (o brew) e installare "gmp"
+
+
+Nel sorgente in C è necessario includer il file header 
+
+#include<gmp.h>
+
+Per compilare
+gcc file.c -o file -lgmp 
+
+*** Definizione e inizializzazione di interi, pulizia della memoria 
+Un tipo "multiple precision" ha il prefisso "mp". Con l'ulteriore carattere "z" definiremo un intero di lunghezza arbitraria (questo tipo non è altro che un puntatore ad una struttura interna a GMP)
+E.g.
+mpz_t a; 
+
+Una volta definita la mia variabile devo NECESSARIAMENTE inizializzarla
+
+mpz_init(a);
+
+Quando non ne avrò più bisogno dovrò liberare la memoria
+
+mpz_clear(a);
+
+
+*** Assegnazione e confronto
+
+
+Il seguente comando assegna ad a il valore di un unsigned integer n.
+
+mpz_set_ui(a,n)
+Nota che il comando emula 
+a=n
+con a primo parametro, n secondo.
+
+Posso ovviamente anche assegnare a=b, dove a e b sono entrambi mpz_t
+mpz_set(a,b);
+
+
+Trattando numeri molto grandi possiamo avere la necessità di generare un buffer in memoria con il valore iniziale e poi "assegnarlo" alla nostra variabile mpz_t. Questo è il comando
+
+mpz_import(a, BUFFER_SIZE, 1, sizeof(buf[0]), 0, 0, buf);
+BUFFER_SIZE è la dimensione del buffer
+1 indica che il Most Significant Byte è 0 (Quindi il Least Significant Byte è BUFFER_SIZE-1)
+Segue la dimensione di ogni elemento nel buffer
+0,0 indicano l'endianness ed un altro parametro specifico di architettura detto nail. In particolare la coppia 0,0 va bene per Intel.
+buf è il puntatore al buffer.
+ 
+Per confrontare si usa mpz_cmp che restituisce 
+un numero maggiore di 0 se a>b 
+un numero minore   di 0 se a<b 
+0 se a==b
+e.g
+mpz_cmp_ui(a,b)==0
+
+Qui confronto a con un unsigned int.
+
+
+*** Operazioni
+Alcune operazioni indispensabili sono +,-,*,gcd
+
+mpz_add(c,a,b)
+mpz_sub(c,a,b)
+mpz_mul(c,a,b)
+mpz_gcd(c,a,b)
+
+che rappresentano rispettivamente : c=a+b, c=a-b, c=a*b, c=gcd(a,b). 
+
+Se volessimo calcolare in c il primo successivo ad un certo numero a, anch'esso mpz_t 
+mpz_nextprime(c,a)
+
+
+Possiamo anche effettuare operazioni modulari
+
+mpz_mod_ui(c,a,2);
+che significa
+c=a mod 2
+
+Nota che il terzo parametro è unigned integer.
+
+Possiamo anche calcolare la potenza c=2^1024
+mpz_ui_pow_ui(c,2,1024);
+Dove il doppio suffisso ui è relativo al 2 ed al 1024.
+
+Inoltre se volessimo calcolare la potenza modulare c=a^2 mod b
+
+mpz_powm_ui(c,a,2,b);
+
+dove a,b,c sono mpz_t e 2 è unsigned int.
+
+
+Infine l'inverso  c=a^(-1) mod b
+mpz_invert(c, a, b)
+   
+
+
+*** Conversione in stringa per stampa a video o su file
+E.g.
+1) Per stampare a video in formato decimale
+mpz_out_str(stdout,10,c)
+
+
+2) Per ottenere una stringa in formato esadecimale che mi dia il valore di a
+mpz_get_str(NULL, 16, a));
+
+Il primo parametro messo a NULL, dice a GMP che utilizzerà  malloc per ottenere la memoria contenente la stringa.
+
+** Alcuni esempi
+
+Un primo esempio
+[[./FirstStepsGMP/simple.c][simple]]
+
+Il fattoriale 
+[[./FirstStepsGMP/factorial.c][fattoriale]]
+
+... e Fibonacci
+[[./FirstStepsGMP/fibonacci.c][fibonacci]]
+
+* Randomness
+In questo tutorial vedremo alcuni concetti basilari relativi alla casualità nella generazione dei numeri Random. Infine implementeremo un algoritmo per generare numeri Random usando la libreria GMP.
+Vedi anche il libro
+Cryptography in C and C++
+
+** Randomness in stdlib
+
+Analizziamo il codice in 
+[[./Randomness/defaultRand.c][defaultRand]]
+Nello standard ISO sono definite le funzioni 
+srand(unsigned int seed);
+e 
+rand();
+che restituisce un valore nell'intervallo
+[0,RANDMAX]
+Lanciamo il programma
+
+Nota: 
+- Diversi SO implementano tale funzione in modo diverso.
+- L'algoritmo implementato non è crittograficamente sicuro per due motivi. Il seed: sto usando l'orologio di sistema.
+La funzione rand, efficiente nel calcolo, è in genere debole.
+
+** Come generare un buon seed?
+
+Il metodo migliore per generare un buon seed, è quello di usare una funzione realmente entropica. Ad esempio un hardware tipo QRNG: Quantum Random Number Generator.
+
+In mancanza di questo possiamo usare l'entropia di sistema.
+
+Ad esempio i sistemi Unix-like (Linux, BSD, MacOS) hanno una funzione interna che genera pacchetti entropici di al più 512 byte, legati ad attività del sistema stesso.
+
+[[./Randomness/entropy.c][Entropy]]
+
+Lanciamo il programma
+
+** Debolezza di rand()
+
+Il tipico generatore di numeri random deriva dalla successione
+x0,x1,...,xn
+Dove
+x(i+1)=a*x(i)+b mod m
+che soddisfa, al fine di ottenere il massimo periodo, le seguenti proprietà:
+1) gcd(b,m)=1
+2) Ogni p|m => p|a-1
+3) 4|m => 4|a-1
+Un esempio standard è dato da (*) fissando i valori
+a=1103515245;
+b=12345;
+m=2^31
+Vedi
+[[./Randomness/linearRand.c]["Linear" Randomness]]
+
+Si può verificare tramite l'algoritmo per calcolare il periodo, presente nel libro, tramite la seguente implementazione, che esso è effettivamente il massimo.
+
+[[./Randomness/linearRandPeriod.c]["Linear" Randomness with period]]
+
+
+Nota: L'algoritmo che viene implementato nei sistemi sfrutta l'equazione (*) scartando però alcuni bit!
+
+

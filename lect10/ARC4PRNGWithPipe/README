@@ -1,0 +1,54 @@
+-- SETUP --
+Per compilare usare make
+verranno generati
+PRNG
+Che è l'eseguibile in C
+RandomThreadServer.class
+e RandomThreadClient.class
+che sono i bytecode in java
+
+Nota: Ci sono altri due eseguibili che allego per completezza e che ho utilizzato come test per il programma PRNG.
+--Breve descrizione del sistema--
+I file compilati eseguono un compito analogo ad arc4PRNG che generava numeri random (cfr. 05Week, dove veniva usata la libreria in C "arc4" e l'interfaccia JNI). 
+
+Anche in questo caso vogliamo 4 thread paralleli in java che siano in connessione tramite pipe a 4 processi paralleli (sviluppati in C).
+Questi ultimi sono i reali generatori dei numeri random. Lo schema è:
+
+Il thread "1" di Java richiede all'eseguibile in C (associato ad "1") un certo numero di valori casuali, tramite la pipe Java2C001, ed il programma in C li calcola e li invia al thread tramite la pipe C2Java001.
+
++--------+     Java2C       +---------+
+|        |>---------------->|         |
+|  Java  |                  |    C    | 
+|        |<----------------<|         |
++--------+     C2Java       +---------+
+
+
+In modo analogo per i thread "2", "3" e "4".
+
+
+-- HowTo --
+
+Creare i file
+mkfifo Java2C001
+mkfifo Java2C002
+mkfifo Java2C003
+mkfifo Java2C004
+
+mkfifo C2Java001
+mkfifo C2Java002
+mkfifo C2Java003
+mkfifo C2Java004
+
+
+Quindi lanciare i 4 processi 
+./PRNG i key 
+con i=1,...,4
+su terminali differenti.
+Lanciare quindi
+java RandomThreadServer
+anch'esso su un nuovo terminale.
+Tale programma lancerà i 4 thread in comunicazione con i processi "PRNG".
+
+A questo punto posso lanciare su altri 4 terminali distinti
+java RandomThreadClient
+che visualizzerà 300000 numeri random

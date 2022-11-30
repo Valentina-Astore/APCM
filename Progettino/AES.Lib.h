@@ -26,7 +26,7 @@ void XOR(uint8_t buf[BLOCK_SIZE], uint8_t vec[BLOCK_SIZE]);
 
 void shortXOR(uint8_t buf[], uint8_t vec[], int len);
 
-void encryptCFB(uint8_t buf[] ,int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uint8_t iv[BLOCK_SIZE]);
+void encryptCFB(uint8_t buf[] ,int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD]);
 
 
 void print8bit(uint8_t byte);

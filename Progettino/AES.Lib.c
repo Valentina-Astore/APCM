@@ -197,7 +197,7 @@ void shortXOR(uint8_t buf[], uint8_t vec[BLOCK_SIZE], int len) {
 
 
 // Cifra un intero buffer di plaintext usando AES128 in modalità CFB. Il buffer viene sovrascritto con il ciphertext ottenuto.
-void encryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD], uint8_t iv[BLOCK_SIZE]){
+void encryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD]){
  
 	// Numero blocchi di dimesione BLOCK_SIZE completi. La divisione ritona automaticamente il floor.
 	int regularBlocks = inlength/BLOCK_SIZE;
