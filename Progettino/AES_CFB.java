@@ -28,10 +28,10 @@ public class AES_CFB {
 	    }	    
 	    
 	    
-	    AEScLaunchThread launchThread = new AEScLaunchThread(id);
+	    /*AEScLaunchThread launchThread = new AEScLaunchThread(id);
 	    Thread t = new Thread(launchThread);
 	    t.start();
-	    
+	    */
 
 
     }
@@ -48,7 +48,7 @@ public class AES_CFB {
 	        for(int i = 0; i < plaintext.length(); i++) {
 	            out.write((byte) plaintext.charAt(i));
 	        }
-	        out.write(0);
+//	        out.write(0);
 	    } catch (Exception ex){
 	        System.out.println(ex);
 	    }
@@ -67,6 +67,39 @@ public class AES_CFB {
 	    return Out;
     }
 
+
+
+    public String decrypt(byte[] ciphertext){
+    
+        String Out = "";
+        
+        
+	    try {
+	        // Scrivo sulla pipe Java2C la lunghezza del plaintext e poi il suo contenuto un carattere alla volta convertito in byte.
+	        out.write(ciphertext.length);
+	        for(int i = 0; i < ciphertext.length; i++) {
+	            out.write(ciphertext[i] );
+	        }
+	        out.write(0);
+	    } catch (Exception ex){
+	        System.out.println(ex);
+	    }
+
+	    try {
+	        //Che poi leggo dalla pipe C2Java
+	        for(int i = 0; i < ciphertext.length; i++){
+	        	char[] temp = {(char) in.read()};
+    	        Out+= new String(temp) ;//forse qui aggiungere conversione intermedia in char
+	        }
+	        
+	        
+	    }catch (Exception ex){
+	        System.out.println(ex);
+	    }
+	    
+	    return Out;
+    }
+    
 
     public void close(){
 	try {

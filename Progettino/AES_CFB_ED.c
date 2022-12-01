@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[]) {
 
-    printf("uehi!");
+//    printf("uehi!");
 
   uint8_t Key[WORDS_IN_KEY][BYTES_IN_WORD]= {{0x2b,0x7e,0x15,0x16},  {0x28,0xae,0xd2,0xa6},  {0xab,0xf7,0x15,0x88},  {0x09,0xcf,0x4f,0x3c}};
 
@@ -43,7 +43,8 @@ int main(int argc, char *argv[]) {
   uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD];
   roundKeyGen(roundKey,Key);
 
-
+//  ENCRYPTION
+  
   fpIn=open(fileNameIn,O_RDONLY);
   fpOut=open(fileNameOut,O_WRONLY);
   
@@ -66,7 +67,42 @@ int main(int argc, char *argv[]) {
 
   } while(inlength!=0); //altrimenti esco
   
+  
   close(fpOut);
   close(fpIn); 
+
+
+//  DECRYPTION
+  
+  fpIn=open(fileNameIn,O_RDONLY);
+  fpOut=open(fileNameOut,O_WRONLY);
+  
+  
+  do {
+    
+    read(fpIn, &inlength, 1);
+    
+    uint8_t buf[inlength];
+    
+    if(inlength>0){
+      for(int i=0;i<inlength;i++) {
+          read(fpIn, buf+i, 1);
+      }
+
+      decryptCFB(buf, inlength, roundKey);
+  
+      write(fpOut,buf,inlength);
+    }
+
+  } while(inlength!=0); //altrimenti esco
+  
+  
+  close(fpOut);
+  close(fpIn); 
+
+
+
+
+
   return 0;
 }
