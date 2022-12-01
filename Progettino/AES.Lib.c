@@ -208,6 +208,7 @@ void encryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS
 	}
 	
 	for(int i = 0; i < regularBlocks; i++) {
+
 		
 		encryptAES(previousCiphertextBlock, roundKey);	
 		XOR(buf+(BLOCK_SIZE*i), previousCiphertextBlock);
@@ -219,10 +220,11 @@ void encryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS
 	
 	int residuals = inlength - (regularBlocks*BLOCK_SIZE);	// dimensione del blocco finale (< BLOCK_SIZE).
 	if (residuals != 0){
-		for(int j = 0; j < BLOCK_SIZE; j++){
-			previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*(regularBlocks-1))];
+		if (regularBlocks != 0){
+			for(int j = 0; j < BLOCK_SIZE; j++){
+				previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*(regularBlocks-1))];
+			}
 		}
-		
 		encryptAES(previousCiphertextBlock, roundKey);
 		shortXOR(buf+(BLOCK_SIZE*regularBlocks), previousCiphertextBlock, residuals);
 	}
@@ -259,18 +261,10 @@ void decryptCFB(uint8_t buf[], int inlength, uint8_t roundKey[NR_ROUNDS+1][WORDS
 	
 	int residuals = inlength - (regularBlocks*BLOCK_SIZE);	// dimensione del blocco finale (< BLOCK_SIZE).
 	if (residuals != 0){
-	
-		for(int j = 0; j < BLOCK_SIZE; j++){
-			encryptedtBlock[j] = previousCiphertextBlock[j];
-		}
 		
-		encryptAES(encryptedtBlock, roundKey);
+		encryptAES(previousCiphertextBlock, roundKey);
 		
-		for(int j = 0; j < BLOCK_SIZE; j++){
-			previousCiphertextBlock[j] = buf[j+(BLOCK_SIZE*(regularBlocks-1))];
-		}
-		
-		shortXOR(buf+(BLOCK_SIZE*regularBlocks), encryptedtBlock, residuals);
+		shortXOR(buf+(BLOCK_SIZE*regularBlocks), previousCiphertextBlock, residuals);
 
 	}
 }
