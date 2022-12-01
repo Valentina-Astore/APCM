@@ -37,7 +37,7 @@ public class Client {
         
         AES_CFB cipher = new AES_CFB();
         cipher.Setup("Client");
-        
+        System.out.println("dopo setup");
         
         byte titleBytes[] = cipher.encrypt(title);
         

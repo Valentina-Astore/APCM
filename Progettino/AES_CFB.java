@@ -26,6 +26,12 @@ public class AES_CFB {
 	    } catch (Exception ex){
 	        System.out.println(ex);
 	    }	    
+	    
+	    
+	    AEScLaunchThread launchThread = new AEScLaunchThread(id);
+	    Thread t = new Thread(launchThread);
+	    t.start();
+	    
 
 
     }
