@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
   char fileNameOut[] = "C2Javagvgvgv";
   char fileNameIn[]= "Java2Cgvgvgv";
   
-  uint8_t inlength;
+  int inlength;
   
   
   if(argc!=2){
@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
   do {
     
     read(fpIn, &inlength, 1);
+    printf("\nDEC: %s ha ricevuto --> %d\n", id, inlength);
     
     uint8_t buf[inlength];
     
@@ -74,8 +75,6 @@ int main(int argc, char *argv[]) {
 
 //  ENCRYPTION
 
-  printf("sono ancora vivo");
-
   fpIn=open(fileNameIn,O_RDONLY);
   fpOut=open(fileNameOut,O_WRONLY);
   
@@ -83,7 +82,7 @@ int main(int argc, char *argv[]) {
   do {
     
     read(fpIn, &inlength, 1);
-    printf("\nValeSprota --> %d\n", inlength);
+    printf("\nENC :%s ha ricevuto --> %d\n", id, inlength);
     
     uint8_t buf[inlength];
     
@@ -94,7 +93,7 @@ int main(int argc, char *argv[]) {
 
       encryptCFB(buf, inlength, roundKey);
   
-      write(fpOut,buf,inlength); printf("Valore inviato %"PRIu8"", buf[0]);
+      write(fpOut,buf,inlength);
     }
 
   } while(inlength!=0); //altrimenti esco

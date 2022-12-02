@@ -1,15 +1,11 @@
 import java.io.*;
 import java.net.*;
 
-
-
-
 public class Client {
 
-    static String[] titlesArray = {"ricetta torta alle mele", "testo La Guerra Di Piero"};
+    static String[] titlesArray = {"Mario Rossi", "Luigi Verdi", "Carla Gialli" };
     
     static int i; static int j;
-
 
     public static void main(String[] args){
 		String ip;
@@ -21,20 +17,20 @@ public class Client {
 		try {
 			 Socket s=new Socket(ip,2022);
 		    
-		    // stampa dei titoli disponibili
-		    for (i=0; i<Client.titlesArray.length; i++){System.out.println("file "+ i + ":  " + Client.titlesArray[i]);}
+//			Stampa dei titoli disponibili.
+		    for (i=0; i<Client.titlesArray.length; i++){System.out.println("file "+ (i+1) + ":  " + Client.titlesArray[i]);}
 
-		    // scelta del titolo da console
+//			Scelta del titolo da console.
 		    Console console = System.console();
 		    if (console == null) {
-		        System.out.println("Couldn't get Console instance");
+		        System.out.println("Errore nell'apertura della console.");
 		        System.exit(0);
 		    }
 			String title = new String(console.readPassword(">"));
 		    
-		    // invio titolo
-		    DataOutputStream writer=new DataOutputStream(s.getOutputStream());
-	//        writer.writeInt(title.length());
+//			Iinvio titolo cifrato.
+		    
+		    DataOutputStream writer = new DataOutputStream(s.getOutputStream());
 		    
 		    cipher.Setup("Client");
 		    
@@ -43,16 +39,16 @@ public class Client {
 		    writer.writeInt(titleBytes.length);
 		    for(i = 0; i < titleBytes.length; i++){
 		        writer.writeByte(titleBytes[i]);
-	//            System.out.println(titleBytes[i]);
 		    }
 		    
 		    cipher.close();
 	  
 
-	//		ricezione testo e decifratura
+//			Ricezione testo e decifratura.
+
 			cipher.Setup("Client");
 	
-			DataInputStream reader=new DataInputStream(s.getInputStream());
+			DataInputStream reader = new DataInputStream(s.getInputStream());
 		
 			int inputLength = reader.readInt();
 		    byte[] contentBytes = new byte[inputLength];
@@ -62,7 +58,7 @@ public class Client {
 		    }
 		    
 		    String content = cipher.decrypt(contentBytes);
-			System.out.println("Testo ricevuto: " + content);
+			System.out.println("Testo ricevuto:\n" + content);
 			
 			reader.close();
 	    	writer.close();

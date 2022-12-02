@@ -1,6 +1,6 @@
 import java.io.*;
 
-public class AES_CFB {
+public class AES_CFB_E {
     
 
     private String FIFOIn;
@@ -11,8 +11,8 @@ public class AES_CFB {
 
     // Setup è il metodo che apre i due file
     public void Setup(String id) {
-	    FIFOOut = "Java2C"+id;  // creazione stringa nome del file
-	    FIFOIn  = "C2Java"+id;
+	    FIFOOut = "Java2CE"+id;  // creazione stringa nome del file
+	    FIFOIn  = "C2JavaE"+id;
 
 	    
 	    try {
@@ -57,39 +57,6 @@ public class AES_CFB {
 	        //Che poi leggo dalla pipe C2Java
 	        for(int i = 0; i < plaintext.length(); i++){
     	        Out[i]=(byte)in.read();
-	        }
-	        
-	        
-	    }catch (Exception ex){
-	        System.out.println(ex);
-	    }
-	    
-	    return Out;
-    }
-
-
-
-    public String decrypt(byte[] ciphertext){
-    
-        String Out = "";
-        
-        
-	    try {
-	        // Scrivo sulla pipe Java2C la lunghezza del plaintext e poi il suo contenuto un carattere alla volta convertito in byte.
-	        out.write(ciphertext.length);
-	        for(int i = 0; i < ciphertext.length; i++) {
-	            out.write(ciphertext[i] );
-	        }
-	        out.write(0);
-	    } catch (Exception ex){
-	        System.out.println(ex);
-	    }
-
-	    try {
-	        //Che poi leggo dalla pipe C2Java
-	        for(int i = 0; i < ciphertext.length; i++){
-	        	char[] temp = {(char) in.read()};
-    	        Out+= new String(temp) ;//forse qui aggiungere conversione intermedia in char
 	        }
 	        
 	        

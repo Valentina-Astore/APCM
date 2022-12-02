@@ -19,10 +19,10 @@ int main(int argc, char *argv[]) {
   int fpOut;
   
   char id[7];   
-  char fileNameOut[] = "C2Javagvgvgv";
-  char fileNameIn[]= "Java2Cgvgvgv";
+  char fileNameOut[] = "C2JavaDgvgvgv";
+  char fileNameIn[]= "Java2CDgvgvgv";
   
-  int inlength;
+  uint8_t inlength;
   
   
   if(argc!=2){
@@ -34,43 +34,14 @@ int main(int argc, char *argv[]) {
     
     
     //sprintf crea la stringa in fileNameIn/Out, e si comporta in modo analogo a printf
-    sprintf(fileNameIn ,"Java2C%s", id);
-    sprintf(fileNameOut,"C2Java%s", id);
+    sprintf(fileNameIn ,"Java2CD%s", id);
+    sprintf(fileNameOut,"C2JavaD%s", id);
     
     
   }
   
   uint8_t roundKey[NR_ROUNDS+1][WORDS_IN_KEY][BYTES_IN_WORD];
   roundKeyGen(roundKey,Key);
-
-//  ENCRYPTION
-  
-  fpIn=open(fileNameIn,O_RDONLY);
-  fpOut=open(fileNameOut,O_WRONLY);
-  
-  
-  do {
-    
-    read(fpIn, &inlength, 1);
-    printf("\nENC: %s ha ricevuto --> %d\n", id, inlength);
-    
-    uint8_t buf[inlength];
-    
-    if(inlength>0){
-      for(int i=0;i<inlength;i++) {
-          read(fpIn, buf+i, 1);
-      }
-
-      encryptCFB(buf, inlength, roundKey);
-  
-      write(fpOut,buf,inlength);
-    }
-
-  } while(inlength!=0); //altrimenti esco
-  
-  
-  close(fpOut);
-  close(fpIn); 
 
 
 //  DECRYPTION
@@ -82,7 +53,7 @@ int main(int argc, char *argv[]) {
   do {
     
     read(fpIn, &inlength, 1);
-    printf("\nDEC: %s ha ricevuto --> %d\n", id, inlength);
+    printf("\nDEC: %s ha letto %d\n",id, inlength);
     
     uint8_t buf[inlength];
     
@@ -94,11 +65,12 @@ int main(int argc, char *argv[]) {
       decryptCFB(buf, inlength, roundKey);
   
       write(fpOut,buf,inlength);
+      write(fpOut,buf,inlength); printf("%s ha inviato %"PRIu8"", id, buf[0]);
     }
 
   } while(inlength!=0); //altrimenti esco
-  
-  
+
+
   close(fpOut);
   close(fpIn); 
 
