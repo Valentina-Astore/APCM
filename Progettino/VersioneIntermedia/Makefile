@@ -11,13 +11,7 @@ AES_CFB_D.class: AES_CFB_D.java
 	
 AES_CFB_E.class: AES_CFB_E.java
 	javac8 AES_CFB_E.java
-	
-AEScLaunchThread.class: AEScLaunchThread.java
-	javac8 AEScLaunchThread.java
 
-AESTest: AESTest.c AES.Lib.o
-	gcc AESTest.c -o AESTest AES.Lib.o
-	
 AES_CFB_D: AES_CFB_D.c AES.Lib.o
 	gcc AES_CFB_D.c -o AES_CFB_D AES.Lib.o
 	

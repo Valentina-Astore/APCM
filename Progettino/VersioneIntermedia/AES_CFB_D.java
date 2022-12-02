@@ -1,8 +1,6 @@
-
 import java.io.*;
 
 public class AES_CFB_D {
-    
 
     private String FIFOIn;
     private String FIFOOut;
@@ -10,12 +8,10 @@ public class AES_CFB_D {
     FileInputStream in;
 
 
-    // Setup è il metodo che apre i due file
+    //Il metodo setup apre le pipes
     public void Setup(String id) {
-	    FIFOOut = "Java2CD"+id;  // creazione stringa nome del file
+	    FIFOOut = "Java2CD"+id;
 	    FIFOIn  = "C2JavaD"+id;
-
-	    
 	    try {
 	        out = new FileOutputStream(FIFOOut);
 	    } catch (Exception ex){
@@ -28,57 +24,49 @@ public class AES_CFB_D {
 	        System.out.println(ex);
 	    }	    
 	    
-	    
-	    /*AEScLaunchThread launchThread = new AEScLaunchThread(id);
-	    Thread t = new Thread(launchThread);
-	    t.start();
-	    */
-
-
     }
 
 
+    //Il metodo decrypt decifra i bytes passati in input restituendo una stringa
     public String decrypt(byte[] ciphertext){
-    
-        String Out = "";
         
-        
+//      ######    INVIO CIPHERTEXT A C    ######
 	    try {
-	        // Scrivo sulla pipe Java2C la lunghezza del plaintext e poi il suo contenuto un carattere alla volta convertito in byte.
-	        out.write(ciphertext.length);
+	        out.write(ciphertext.length);//Scrivo sulla pipe Java2CD la lunghezza del ciphertext
 	        for(int i = 0; i < ciphertext.length; i++) {
-	            out.write(ciphertext[i] );
+	            out.write(ciphertext[i] );//Scrivo sulla pipe Java2CD il ciphertext un carattere alla volta
 	        }
-	        out.write(0);
-	    } catch (Exception ex){
-	        System.out.println(ex);
+	        out.write(0);//Indico al processo C che ho terminato l'invio di bytes di ciphertext
+	    } catch (Exception e){
+	        System.out.println(e);
 	    }
 
+
+//      ######    LETTURA PLAINTEXT DA C    ######
+        String Out = "";
 	    try {
-	        //Che poi leggo dalla pipe C2Java
 	        for(int i = 0; i < ciphertext.length; i++){
-	        	char[] temp = {(char) in.read()};
-    	        Out+= new String(temp) ;//forse qui aggiungere conversione intermedia in char
+	        	char[] temp = {(char) in.read()};//Leggo dalla pipe C2JavaD il plaintext un carattere alla volta
+    	        Out+= new String(temp);//Aggiungo il nuovo carattere acquisito alla stringa Out
 	        }
 	        
-	        
-	    }catch (Exception ex){
-	        System.out.println(ex);
+	    }catch (Exception e){
+	        System.out.println(e);
 	    }
 	    
 	    return Out;
     }
     
 
+    //Il metodo close chiude le pipes
     public void close(){
-	try {
-	    out.close();
-	    in.close();
-	} catch (Exception ex) {
-	    System.out.println(ex);
-	}
-	
-	
+	    try {
+	        out.close();
+	        in.close();
+	    } catch (Exception ex) {
+	        System.out.println(ex);
+	    }
+	    
     }
     
 }

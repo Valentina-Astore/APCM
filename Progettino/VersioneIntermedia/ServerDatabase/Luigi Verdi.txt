@@ -1,5 +1,4 @@
-Analisi A         | 26
-Geometria A       | 21
-Algebra A         | 18
-Fisica Classica   | 27
-Informatica       | 30
+Ambulatorio : Ortopedia
+Data visita: 21/01/2022
+Scadenza Pagamento: 21/06/2022
+Codice ID pagamento: Orto.2101.007
