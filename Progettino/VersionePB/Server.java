@@ -78,11 +78,12 @@ public class Server /*implements Runnable */{
 
 
 	//		  Apertura del file da inviare
+	        String testo = "";
 		    try {
 		        File contentFile = new File("./ServerDatabase/"+title+".txt");
 		        FileInputStream contentStream = new FileInputStream(contentFile);
 		        
-		        String testo = "";
+		        
 		        char c;
 		        while((c = (char) contentStream.read()) != (char)-1){
 					testo +=  c;
@@ -101,7 +102,7 @@ public class Server /*implements Runnable */{
 		    
 		    DataOutputStream writer = new DataOutputStream(s.getOutputStream());
 		    
-		    byte contentBytes[] = cipher.encrypt(title);
+		    byte contentBytes[] = cipher.encrypt(testo);
 		    
 		    writer.writeInt(contentBytes.length);
 		    for(i = 0; i < contentBytes.length; i++){

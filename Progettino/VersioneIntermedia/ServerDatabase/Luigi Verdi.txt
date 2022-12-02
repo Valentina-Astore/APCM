@@ -1,0 +1,5 @@
+Analisi A         | 26
+Geometria A       | 21
+Algebra A         | 18
+Fisica Classica   | 27
+Informatica       | 30

@@ -32,7 +32,7 @@ CARATTERISTICHE DELLA NUOVA VERSIONE (INTERESSANTE SE SI VUOLE CERCARE DI RISOLV
     try{
             ProcessBuilder p = new ProcessBuilder();
 
-            p.command("bash", "-c", "gnome-terminal -- ./AES_CFB_ED " + id); //Lancio il comando mettendo id al posto di Client/Server
+            p.command("bash", "-c", "gnome-terminal -- ./AES_CFB_E/D " + id); //Lancio il comando mettendo id al posto di Client/Server
 
             Process process = p.start();
             
@@ -42,3 +42,27 @@ CARATTERISTICHE DELLA NUOVA VERSIONE (INTERESSANTE SE SI VUOLE CERCARE DI RISOLV
     - per fare il passo precedente ho bisogno di id. Quindi faccio in modo che Setup lo scriva in un attributo degli oggetti della classe (public string id)
     
     - modifico il make per compilare i nuovi file definiti. Ho anche tolto le dipendenze da LaunchThread
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
