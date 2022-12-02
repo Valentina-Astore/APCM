@@ -1,5 +1,5 @@
 #!/bin/bash
 git add *
-git commit -m "Material of Progettino (AES.Lib)"
+git commit -m "Final version of progettino"
 git push -u origin main
 

@@ -1,7 +1,9 @@
-MARIO ROSSI
+Ambulatorio : Dermatologia
+Data visita: 17/09/2022
+Scadenza Pagamento: 17/02/2023
+Codice ID pagamento: Derma.1709.025
 
-Analisi A         | 28
-Geometria A       | 29
-Algebra A         | 30
-Fisica Classica   | 24
-Informatica       | 28
+Ambulatorio : Geriatria
+Data visita: 12/03/2022
+Scadenza Pagamento: 12/07/2023
+Codice ID pagamento: Geria.1709.025

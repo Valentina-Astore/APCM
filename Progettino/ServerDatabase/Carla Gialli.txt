@@ -1,7 +1,9 @@
-CARLA GIALLI
+Ambulatorio : Cardiologia
+Data visita: 12/04/2022
+Scadenza Pagamento: 12/12/2022
+Codice ID pagamento: Cardio.1204.003
 
-Analisi A         | 25
-Geometria A       | 25
-Algebra A         | 22
-Fisica Classica   | 27
-Informatica       | 18
+Ambulatorio : Pneumologia
+Data visita: 18/04/2022
+Scadenza Pagamento: 18/12/2022
+Codice ID pagamento: Pneumo.1812.011

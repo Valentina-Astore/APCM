@@ -1,4 +1,0 @@
-Ambulatorio : Ortopedia
-Data visita: 21/01/2022
-Scadenza Pagamento: 21/06/2022
-Codice ID pagamento: Orto.2101.007
