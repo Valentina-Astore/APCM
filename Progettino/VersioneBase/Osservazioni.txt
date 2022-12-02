@@ -5,6 +5,15 @@ Dal punto di vista della sicurezza:
 - README:
 	1. ./AES_CFB_DE Server
 	2. ./AES_CFB_ED Client
+	
+	
+	
+	
+	Come fare per renderlo consegnabile:
+	    cambiare stampe files C                                             
+	    gestire titolo sbagliato (più facile lato client)                   X
+	    eventualmente cambiare file txt togliendo il nome dello studente    X
+	    
 
 
 

@@ -1,5 +1,3 @@
-MARIO ROSSI
-
 Analisi A         | 28
 Geometria A       | 29
 Algebra A         | 30

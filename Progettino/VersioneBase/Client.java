@@ -6,7 +6,7 @@ import java.net.*;
 
 public class Client {
 
-    static String[] titlesArray = {"Mario Rossi", "Luigi Verdi", "Carla Gialli"};
+    static String[] titlesArray = {"Carla Gialli", "Mario Rossi", "Luigi Verdi"};
     
     static int i; static int j;
 
@@ -23,7 +23,8 @@ public class Client {
 			 Socket s=new Socket(ip,2022);
 		    
 		    // stampa dei titoli disponibili
-		    for (i=0; i<Client.titlesArray.length; i++){System.out.println("file "+ i + ":  " + Client.titlesArray[i]);}
+		    for (i=0; i<Client.titlesArray.length; i++){System.out.println("studente "+ (i+1)+ ":  " + Client.titlesArray[i]);}
+		    System.out.println();
 
 		    // scelta del titolo da console
 		    Console console = System.console();
@@ -31,7 +32,15 @@ public class Client {
 		        System.out.println("Couldn't get Console instance");
 		        System.exit(0);
 		    }
-			String title = new String(console.readPassword(">"));
+		    
+			String title;
+			boolean flag = true; //flag == true --> il titolo inserito non è nel database 
+			do{
+			    System.out.println("Inserire lo studente desiderato.");
+			    title = new String(console.readPassword(">"));
+			    for (i = 0; i < titlesArray.length; i++ ) {flag = flag && !(titlesArray[i].equals(title));}
+		    }while(flag);
+		    
 		    
 		    // invio titolo
 		    DataOutputStream writer=new DataOutputStream(s.getOutputStream());

@@ -1,5 +1,3 @@
-CARLA GIALLI
-
 Analisi A         | 25
 Geometria A       | 25
 Algebra A         | 22

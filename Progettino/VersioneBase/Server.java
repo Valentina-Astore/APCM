@@ -37,6 +37,7 @@ public class Server {
 			
 			String title = cipherD.decrypt(titleBytes);
 			System.out.println("Titolo ricevuto: "+title);
+		    System.out.println();
 
 			cipherD.close();
 
@@ -54,6 +55,9 @@ public class Server {
 		    } catch(Exception e) {
 			    System.out.println("Error in opening the file from ServerDatabase.");
 		    }
+		    
+		    System.out.println("Testo da inviare:\n"+testo);
+		    
 
 //			cifratura e invio contenuto file
 

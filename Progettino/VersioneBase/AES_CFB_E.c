@@ -11,8 +11,6 @@
 
 int main(int argc, char *argv[]) {
 
-//    printf("uehi!");
-
   uint8_t Key[WORDS_IN_KEY][BYTES_IN_WORD]= {{0x2b,0x7e,0x15,0x16},  {0x28,0xae,0xd2,0xa6},  {0xab,0xf7,0x15,0x88},  {0x09,0xcf,0x4f,0x3c}};
 
   int fpIn;
@@ -29,11 +27,8 @@ int main(int argc, char *argv[]) {
     printf("%s id\n", argv[0]);
     return 1;
   } else {    
-    //printf("STAMPA UNO %s\n", fileNameIn);
     strcpy(id, argv[1]);
     
-    
-    //sprintf crea la stringa in fileNameIn/Out, e si comporta in modo analogo a printf
     sprintf(fileNameIn ,"Java2CE%s", id);
     sprintf(fileNameOut,"C2JavaE%s", id);
     
@@ -53,7 +48,7 @@ int main(int argc, char *argv[]) {
   do {
     
     read(fpIn, &inlength, 1);
-    printf("\nENC: %s ha letto %d\n",id, inlength);
+//    printf("\nENC: %s ha letto %d\n",id, inlength);
     
     uint8_t buf[inlength];
     
@@ -64,7 +59,7 @@ int main(int argc, char *argv[]) {
 
       encryptCFB(buf, inlength, roundKey);
   
-      write(fpOut,buf,inlength); printf("%s ha inviato %"PRIu8"", id, buf[0]);
+      write(fpOut,buf,inlength); 
 
     }
 
