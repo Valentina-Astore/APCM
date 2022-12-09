@@ -7,7 +7,7 @@
 
 int main() {
     privateKey Sk;
-
+    
     genKey(&Sk);
 
     // showKey()

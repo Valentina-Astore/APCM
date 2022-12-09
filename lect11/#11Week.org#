@@ -1,0 +1,164 @@
+* Randomness
+In questo tutorial vedremo alcuni concetti basilari relativi alla casualità nella generazione dei numeri Random. Infine implementeremo un algoritmo per generare numeri Random usando la libreria GMP.
+Vedi anche il libro
+Cryptography in C and C++
+
+** Blum Blum Shub
+Un algoritmo sicuro per generare numeri random è BBS. Tra l'altro ci permette di sfruttare la libreria GMP e ha alcune analogie con RSA.
+
+Siano p e q due numeri primi tali che
+p=3 mod 4
+q=3 mod 4
+Poniamo 
+n=pq 
+Prendiamo X0 coprimo con n e costruiamo la successione
+X0, X1,..., Xn
+con 
+X(i+1)=Xi^2 mod n
+
+Output: LSB(Xi) (bit meno significativo di Xi) i=0,...,n	//NB il LSB è la parità.
+Esistono varianti che prendo la parità di X(i) o anche più di un bit.
+
+*** Esercizio PrimeTest
+
+Nel seguente file header trovi le seguenti funzioni
+[[./BBS/PrimeLib.h][PrimeLib header]]
+
+1) void randNum(mpz_t n);
+che Genera un numero pseudo-random di BIGNUM_IN_BYTE bytes e che ha il MS bit and il LS bit a 1.
+Usa la funzione
+mpz_import()
+descritta nella precedente lezione per assegnare il valore in un mpz_t.
+Nota. Usa rand() anche se "non sicura" per verificare l'output.
+ 
+
+2) void randPrime(mpz_t p);
+che Genera un numero primo a partire da randNum.
+
+
+
+3) void BBSPrime(mpz_t p);
+che genera un numero primo usando randPrime e secondo le specifiche BBS.
+
+
+Scrivi le tre funzioni e verificane il funzionamento tramite il seguente 
+[[./BBS/PrimeTest.c][Prime Test]]
+
+Questo è il Makefile
+[[./BBS/Makefile][Makefile]]
+
+*** Esercizio 
+Implementa l'algoritmo BBS in modo da generare il numero di byte random richiesto dall'utente.
+A tale scopo dovrai scrivere le funzioni in C nella libreria BBSLib.c
+
+Usa il file header della libreria 
+[[./BBS/BBSLib.h][BBSLib header]]
+
+Usa inoltre il main
+[[./BBS/BBSRandByte.c][BBSRandByte]]
+
+ed il Makefile già descritto
+
+
+* RSA
+Anche in questo tutorial scriveremo l'intero algoritmo step by step, usando diversi programmi di test che vi fornisco, insieme agli header delle librerie ed il Makefile.
+
+
+** Generazione di Primi "RSA"
+Per implementare RSA, dovremo estendere la libreria PrimeLib, aggiungendo una funzione che generi primi validi per RSA. Il prototipo di tale funzione è già presente in
+[[./RSA/PrimeLib.h][PrimeLib header]]
+
+Ricordiamo che il primo "p" generato in RSA deve essere tale da soddisfare la seguente equazione
+gcd(phi(p),e)=1.
+
+Dove phi(p)=p-1 (essendo p primo).
+
+Quindi dobbiamo fissare l'esponente pubblico "e".
+
+Questo lo poniamo uguale alla costante F4 definita in
+[[./RSA/RSA.Lib.h][RSA Lib header]]
+che è il IV numero di Fermat
+2^2^4+1=65537 
+Questo numero non è scelto a casa infatti è il minimo esponente richiesto dal NIST.	// ha solamente 2 bit uguali a 1.
+Ricordiamo inoltre che "e" è solitamente scelto piccolo per rendere l'algoritmo di criptazione più efficiente.
+
+** Esercizio RSAPrime(...)
+Implementa
+void RSAPrime(mpz_t p, mpz_t e);
+
+Per verificare il funzionamento puoi usare
+
+[[./RSA/Makefile][Makefile]]
+
+ed il programma di test
+[[./RSA/PrimeTest.c][PrimeTest]]
+nel quale pongo per semplicità e=3.
+
+** Generazione della chiave privata
+Per la generazione della chiave privata, oltre ad utilizzare la funzione RSAPrime() per calcolare p e q, per aumentare la sicurezza della nostra implementazione imporremo che 
+|p-q|>sqrt(p)
+
+Quest'ultimo valore lo possiamo approssimare a
+
+2^(MODN_IN_BIT/4)
+
+Nota Tecnica:
+E' molto utile creare due strutture distinte ad hoc per le chiavi privata e pubblica di RSA.
+Vedi
+[[./RSA/RSA.Lib.h][RSA Lib header]]
+
+** Esercizio GenKey()
+
+Implementa GenKey(...) che inizializza la chiave privata.
+
+
+
+
+Usa il programma di test:
+[[./RSA/GenKey.c][GenKey Main]]
+
+Note sull'algoritmo usato.
+
+0) All'interno si pone e=F4.
+
+1) Nella implementazione si usi srand(0) all'interno di genKey(). Solo per facilitare i test.
+Ovviamente questa funzione deve essere rimossa e posta in un'altra posizione, generando un seed "entropico", in particolare diverso da 0.
+
+2) Per generare p si usi RSAPrime e dopo in un ciclo do () while si calcoli q (sempre con RSAPrime) che soddisfi la proprietà di sicurezza (sulla distanza tra p e q). Per calcolare |p-q|, si può usare la funzione
+mpz_abs(a,b);
+che pone 
+a=|b|
+ 
+3) Calcolo phi. Facile
+
+4) Calcolo di d. E' sufficiente usare la funzione 
+mpz_invert(),
+già descritta nell'howto della lezione scorsa.
+(Nota che mpz_invert restituisce 0 se gcd(e,phi) diverso da 1. Quindi in questo caso particolare F4|phi. Io faccio solo il controllo su 0 e nel caso stampo un messaggio a video. Questo non dovrebbe mai avvenire usando RSAPrime()!
+Non faccio un ricalcolo di p e q, in quest'ultimo caso.)
+
+** Salvataggio delle chiavi
+Una volta generata la chiave privata è necessario memorizzare su disco (o altro dispositivo), i file
+Public.key --> Contenente la versione pubblica della chiave
+Secret.key --> Contenente la versione privata/segreta della chiave
+Nota tecnica:
+Un modo per memorizzare su file tali dati è mediante stringhe esadecimali
+Dunque Public.key conterrà due sole linee di testo esadecimale contenenti
+n
+e
+Mentre Secret.key conterrà 5 linee
+n
+e
+d 
+p
+q
+** Esercizio writeKeysOnFile
+Usando il programma di test
+[[./RSA/GenKeyOnFile.c][GenKeyOnFile Main]]
+scrivere la funzione in oggetto, usando le funzioni di GMP per ottenere le stringhe esadecimali che dovranno essere memorizzate nei file
+[[./RSA/Public.key][Public.key]]
+e 
+[[./RSA/Secret.key][Secret.key]]
+
+
+
