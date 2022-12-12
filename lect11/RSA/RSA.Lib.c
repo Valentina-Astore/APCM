@@ -60,6 +60,7 @@ void writeKeysOnFiles(privateKey* Sk){
 }
 
 
+
 /*
 void encrypt(mpz_t C, mpz_t M, publicKey Pk);
 void decrypt(mpz_t M, mpz_t C, privateKey Sk);
