@@ -1,5 +1,10 @@
 #!/bin/bash
 git add *
-git commit -m "Lecture 11 uploaded"
+echo "Description of the new commit:"
+IFS=''
+while read data; do
+    echo "$data"
+done < test.file
+git commit -m $test.file
 git push -u origin main
 

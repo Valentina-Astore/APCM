@@ -1,5 +1,5 @@
 #all : PrimeTest
-all : GenKey
+all : GenKey GenKeyOnFile
 
 PrimeTest : PrimeTest.c PrimeLib.o
 	gcc PrimeTest.c -o PrimeTest PrimeLib.o -lgmp -I/opt/local/include -L/opt/local/lib
