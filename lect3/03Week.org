@@ -1,5 +1,5 @@
 * Operatori orientati ai bit
-Nella prima lezione abbiamo visto come l0a ALU (che fa parte della CPU) abbia comandi atti ad effettuare operazioni aritmetiche e logiche. 
+Nella prima lezione abbiamo visto come la ALU (che fa parte della CPU) abbia comandi atti ad effettuare operazioni aritmetiche e logiche. 
 Tali operazioni essendo esguite tramite un solo comando (in LM) sono le elaborazioni più veloci attuabili all'interno di un computer.
 
 Tra queste, gli operandi che hanno il massimo rilievo per quanto riguarda i cifrari simmetrici, sono quelli logici detti anche 

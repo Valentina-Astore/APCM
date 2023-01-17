@@ -1,0 +1,96 @@
+* Introduzione
+
+Si deve implementare una chat di gruppo con un server centralizzato che permetta ogni utente collegato di inviare un messaggio sia a tutti gli utenti collegati che a un singolo utente.
+
+Nel visualizzare un messaggio un utente deve vedere chi ha inviato il messaggio e se questo è privato o visibile a tutti.
+
+E.g.
+10:57: Piero85 (Privato): Ciao hai sentito cosa è successo ad Antonio?
+11:02: Gian79 (A tutti): Ciao mi sono appena collegato come state?
+	      
+
+* Prototipo
+Il tuo compito è sviluppare i seguenti  prototipi:
+
+Client)  Java+JavaFX e C che permetta ad ogni utente di ricevere ed inviare i messaggi dal server visualizzandoli a schermo. Inoltre, ogni utente deve riuscire a visualizzare tutti i nomi degli utenti collegati in quel momento e poter selzionare nell'invio dei messaggi se inviarli ad un singolo utente o a tutti.
+
+Se un utente effettua il lougout allora la lista degli utenti si deve aggiornare di conseguenza.
+
+Server) Acquisisce il messaggio da un client e lo redistribuisce agli altri client o a un singolo client se il messaggio è privato. Rende disponibile ad ogni client la lista degli utenti connessi.
+ 
+* Comunicazione in modo sicuro
+
+La Comunicazione avverrà in un canale bidirezionale tra Client e Server. Per semplicità si utilizzeranno i socket del protocollo TCP/IP standard. Il server lancerà un thread per ogni Client. Vedi chat in 06Lec come possibile applicativo dal quale trarre ispirazione.
+
+           Socket TCP/IP
+Client <-------------------> Server
+
+All'inizio della sessione il Server concerterà con i Client le chiavi di sessione, una per ogni canale.
+Una chiave di sessione per Client1, una per Client2, e così via.
+
+Tale chiave di sessione verrà scambiata e "concertata" usando un opportuno schema crittografico in Java da te scelto.
+Sei libero di decidere il metodo con cui generare la chiave.
+
+La cifratura/decifratura delle informazioni avverrà tramite AES128 da te implementato in C durante il corso.
+
+Per la comunicazione tra C e Java potrai usare o la Java Native Interface oppure le pipe. 
+L'interfaccia Java del Client acquisisce dal server tramite TCP/IP i messaggi criptati.
+
+La parte sottostante sviluppata in C decripterà "l'informazione" tramite:
+1) il processo in C (se si usano le pipe).
+2) una funzione nativa in C (se si usa la Java Native Interface).
+
+
+Analogamente la parte in Java del Client invia il messaggio acquisito al Server tramite TCP/IP criptato.
+Anche in questo caso la criptazione avverrà tramite C (vedi i precedenti punti alternativi 1) e 2)).
+
+
+Essendo il canale TCP/IP insicuro si userà una chiave di sessione generata secondo uno schema a piacere scelto usando l'API del Provider (Oracle/Sun o Bouncy Castle).
+
+Messaggio e nome utente a cui inviarlo (nel caso in cui sia privato) vengono spediti in un unico pacchetto dati.
+
+* Regole per la presentazione/sviluppo del progetto
+Il progetto può essere sviluppato in team di due persone. È anche possibile lavorare soli.
+Il prototipo può anche avere delle caratteristiche aggiuntive/migliorative (per esempio invio di immagini).
+Non usare Database esterni.
+
+
+Il progetto deve essere presentato almeno una settimana prima della data concordata per l'orale.
+
+Il progetto va allegato ad una e-mail inviata a marco.calderini@unitn.it e riccardo.longo@unitn.it il cui oggetto sarà:
+
+Progetto APCM 2022 Cognome1 Cognome2
+
+e dovrà essere un file con nome
+
+APCM2022Cognome1Cognome2.tar.gz
+
+cioè un tar compresso tramite comando
+tar -cf APCM2022Cognome1Cognome2.tar.gz percorso_cartella_contenente_il_progetto
+
+Il progetto deve contenere 
+1) un Makefile, che permetta di compilare l'intero sistema;
+2) Un file ascii chiamato README, che contenga:
+   a) Il sistema/i  sul/i quale/i quali  è stato verificato il funzionamento (Hardware e versione SO).
+   b) Istruzioni di installazione
+   c) Istruzioni per lanciare il progetto
+3) I sorgenti Java e C 
+4) file fxml e css se usati.
+5) Se si ritiene utile un piccolo report in txt/pdf di poche pagine relativo alle scelte implementative/ottimizzazioni/tabelle comparative relative alla implementazioni testate.
+
+Note:
+- Non sono ammessi gli eseguibili o i file class.
+- Il Makefile deve eseguire tutti gli step necessari per la compilazione, inclusa la creazione di eventuali file di supporto (es. pipe) se questi non vengono creati all'interno dei processi C o Java. 
+- Il Makefile deve essere compatibile con la scelta della versione di Java da usare, per esempio impostando un javapath (vedi materiale Week 09).
+- L'impostazione della struttura a cartelle nell'archivio compresso dovrà essere sensata.
+- Controllate di usare il nome (ed estensione) corretto per l'archivio compresso, che l'oggetto dell'e-mail sia quello giusto, e che l'e-mail sia inviata ad entrambi gli indirizzi: non saranno considerati progetti inviati in maniera scorretta.
+- È sufficiente che un solo membro del gruppo invii l'e-mail.
+
+
+Nell'orale i docenti porranno quesiti di C e Java relativi al progetto e alla sua implementazione in ogni sua parte.
+Una eventuale presentazione potrà essere richiesta.
+
+
+* Bug
+E' fondamentale risolvere i bug in modo autonomo.
+Nel caso non doveste riuscire a risolvere un bug o un problema tecnico potrete sottomettermi il tutto una settimana prima dell'esame sottolineando il problema. Vi dirò se nonostante il problema il progetto può essere considerato come PASSED.

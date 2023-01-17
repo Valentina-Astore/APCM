@@ -1,0 +1,279 @@
+* Richiami di informatica con riferimento a C e Java
+  
+Osservando il tiobe index si puo' notare come C e Java siano tra i linguaggi piu' usati a tutt'oggi.
+[[https://www.tiobe.com/tiobe-index/][Tiobe index]]
+
+Possiamo semplificando un pò dire che il loro successo nasce dalla loro relazione con due macchine: quella reale e quella virtuale.
+* Invenzione di C
+Negli anni 70 (tra il 1969 e il 1973) D. Ritchie inventa il linguaggio C come strumento per implementare un nuovo sistema operativo: Unix.
+
+Infatti fino ad allora i SO venivano implementati direttamente in LM. 
+
+Ogni CPU aveva un suo SO e non c'era portabilità!
+
+* Macchina reale
+CPU = Central Processing Unit (memoria interna i registri pochi bytes)
+RAM = Memoria volatile (<10^2 Gb)
+Memoria di massa = Memoria non volatile (10^2-10^3 Gb=1 Tb)
+
+CPU<-->RAM<-->Memoria di massa
+
+La CPU esegue il codice o accede a dati della RAM, non può accedere direttamente al disco!
+
+* CPU (schema semplificato)
+** ALU=Arithmetic Logic Unit
+E' la componente più matematica della CPU. Implementa le operazioni aritmetiche (+,-,*,/), logiche (and, or, not, xor, etc.), altre (shift e rotate destro e sinistro di bit). 
+Esse operano sui registri o su zone di memoria puntate/indirizzate dai registri.
+** Registri
+I registri sono la memoria della CPU. 
+La loro dimensione in bit è un indice della potenza della CPU:8,16,32,64 bit.
+** CU=Control Unit
+La CU legge le istruzioni in LM dalla RAM, permette di eseguire jump, 
+coordina le varie operazioni della CPU.
+Usa dei registri di memoria specifici che puntano alla memoria RAM per leggere il codice da eseguire.
+
+* CPU (es. 80386)
+** REGISTRI=eax,ebx,ecx,edx (Memoria della CPU) e altri più specifici
+I registri nelle CPU Intel hanno nomi diversi a seconda del numero di bit.
+eax,ebx,ecx, edx sono registri a 32 bit (80386).  Essendoci retrocompatibilità possiamo far girare un programma a 32 bit su una CPU a 64 bit (ovviamente solo Intel).
+
+** Operatori ALU=ADD, SHIFT, XOR, OR, AND, etc.
+Le uniche  operazioni che useremo sono:
+sub eax, ebx        
+che indica l'assegnazione
+eax=eax-ebx
+e 
+inc eax
+che incrementa eax di 1 (eax=eax+1)
+** CU
+I comandi che utilizzeremo sono quelli di jump. 
+Essi ci permettono di modificare il flusso sequenziale del codice.
+
+* Esempio Hello.asm
+
+Nel primo programma sono presenti solo due tipi di comandi: mov, int
+
+mov eax,1 e' "a=1" (cioe' poni il registro eax al valore 1)
+int 80h (salta all'interrupt di sistema che serve ad es. a stampare a video stringhe in linux. Non funziona su windows anche su una CPU dello stesso modello).
+** Breve digressione sugli interrupt
+Gli interrupt interrompono il flusso dell'attuale processo, memorizzano lo stato della CPU, ed eseguono un codice specifico di sistema. Alla fine dell'esecuzione dell'interrupt, il processo riprenderà la sua esecuzione dopo avere ripristinato lo stato dei registri della CPU.
+Gli interrupt possono essere sia hardware che software. I primi sono utili perchè bloccano il processo in esecuzione in funzione di eventi asincroni determinate dalle periferiche.
+I secondi (come l'interrupt 80h o 128) esseguono software specifico di sistema.
+ 
+Proviamo brevemente a capire il codice.
+[[./hello.asm][hello]]
+
+* Programmi Vs Processi
+** Una semplice domanda
+Quando lanciamo dalla console
+./hello
+Cosa succede?
+** Una risposta semplificata
+- Il File Manager del SO legge il programma (il file) dalla memoria di massa alloca lo spazio in RAM tramite il Memory Manager (sempre del SO) e quindi lo trasferisce sulla RAM.
+- Una parte del SO detto Process Manager prende il carico il processo eseguibile e se ha tempo e risorse lo esegue (non necessariamente aspettando il completamento). La CPU esegue i singoli comandi di "hello" che abbiamo descritto precedentemente.
+- Nota: Programma=file, Processo=programma che è in esecuzione. 
+- Eseguiamo top dalla console
+** Gestori essenziali del SO 
+File Manager->Gestore della memoria di massa
+Memory manager->Gestore della RAM
+Process manager-> Gestore dei processi e dunque della risorsa hardware più importante la CPU. 
+* HelloLength
+
+Nel secondo abbiamo un ciclo che serve a calcolare la lunghezza della stringa da stampare
+Abbiamo 4 nuovi comandi: cmp,jz,inc,sub,jmp
+cmp -> confronta con 0 il byte "puntato" dall'indirizzo presente nel registro eax.
+jz  -> se il risultato del precedente confronto e' 0 allora il flag di zero (in un particolare registro detto registro dei flag) è settato. jz salta, se il flag è settato, all'indirizzo di memoria "finished"
+inc -> incrementa il valore del registro (eax=eax+1)        
+sub -> Sottrae dal puntatore eax il puntatore ebx (eax=eax-ebx)
+jmp -> Salta all'indirizzo di memoria "nextchar"
+ 
+A questo punto dovrebbe essere chiaro il funzionamento del programma.
+
+Nota Bene: Se dovessi usare un processore diverso da Intel 80x86 dovrei riscrivere l'intero codice!!!
+
+[[./hellolength.asm][length of string in ASM]]
+
+* Il linguaggio C
+** Gli inizi
+L'idea di Ritchie (anni 70) è di definire un linguaggio "low level" che però astragga bene il set di comandi di una qualunque CPU. Ed inventa il C.
+C nasce con l'intento di sviluppare Unix (Ritchie è uno dei coautori di Unix). 
+Unix è un SO oggi ampiamente utilizzato:
+Linux, MacOs, Android (kernel linux), Mainframe, embedded systems (automotive, router, etc.).
+
+** Oggi
+Praticamente tutti i SO sono scritti in C o C++. Dopo 50 anni. Che in informatica è un periodo estremamente lungo.
+Inoltre quando si vuole sviluppare in ambiente embedded C è un must.
+Vediamo l'implementazione di hellolength in C.
+** Un esempio in C
+[[./length.c][hello CryptoLab]]
+** Qualche commento
+Ciò che osserviamo è che C, rispetto ad altri linguaggi permette di avere una corrispondenza "quasi biunivoca" tra comandi propri di C e comandi LM.
+
+Ad esempio l'utilizzo dei puntatori si lega direttamente al metodo di assegnazione di un registro tramite indirizzo in memoria.
+
+Inoltre esiste l'operatore di incremento ++ corrispondente ad inc e presente in tutte le CPU.
+
+* Il linguaggio Java
+** Nascita
+Il linguaggio Java nasce nel 1995 (Gosling). Il mondo è parecchio cambiato dal 1970. 
+Il web inizia a mostrare le sue potenzialità. 
+** Obbiettivi
+L'idea è di creare un linguaggio i cui programmi (file eseguibili)  possano girare su ogni SO senza bisogno di ricompilazione (possibilmente scaricando l'eseguibile dal web). 
+Inoltre si avverte l'esigenza di costruire delle librerie che si interfaccino a tutte le nuove tecnologie : Web, GUI, Multimedia, Crypto, etc.
+Infine si vogliono acquisire tutte le buone caratteristiche di C++ evitando le cattive/"difficili da  gestire" (puntatori).
+* Java e la JVM
+** Soluzione a WORA (Write Once Run Anywhere)
+Per risolvere WORA si definisce la Java Virtual Machine. 
+Essa è una macchina virtuale che gira su quella reale e che permette di eseguire i programmi (bytecode) compilati.
+Dunque la macchina virtuale Java ha un proprio LM astratto, ma sempre legato a LM reali. Ad esempio avremo incremento (iinc) di registri, sottrazione (isub,lsub,fsub,dsub), or e xor (ior,lor, ixor,lxor), etc.   
+** Esempio
+Consideriamo il file 
+[[./Hello.java][Hello Java]]
+- Passo di compilazione
+javac Hello.java 
+- Esecuzione mediante la JVM
+java Hello
+
+* Le versioni di Java
+
+** Le LTS 
+Java ha come obbiettivo di essere aggiornato con le più recenti tecnologie. Le versioni Long Term Support (LTS) sono state adottate da Java 8.
+
+Principali release
+Java 2 (1997), Java 5 (2004), Java 8 (2014-2023), Java 11 (2018-2026).
+Le LTS tentano di alleviare i "problemi" di aggiornamento dei vari applicativi.
+OpenJDK e Versione Commerciale Oracle.
+
+** Un esempio di aggiornamento tecnologico
+Java AWT (1.2-2), Swing (5), JavaFX (8-11).
+Java AWT (Libreria di base per il rendering grafico sul SO ospite di Java)
+Nelle prime versioni era l'unica libreria per gestire la GUI
+Swing si appoggia su AWT e disegna la GUI in modo che si comporti in modo analogo su SO diversi. 
+Swing è ancora utilizzata ampiamente (es. GeoGebra).
+JavaFX ha come obbiettivo di soppiantar Swing e contiene tuutte le più moderne tecnologie grafiche,
+form fxml, css, gesture events.
+JavaFX non è adottato dai SO degli smartphone (vedi Android o peggio IPhone). Gluon però distribuisce delle librerie che (a pagamento) permettono di far girare JavaFX su iOs e Android.
+Buone notizie: JavaFX funziona bene sutte le WorkStation.
+
+* Il Progetto d'esame (un esempio)
+Esso è generalmente costituito da due parti
+** Parte in C
+   Sviluppo di un algoritmo di cifratura simmetrico
+** Parte in Java
+Uso di un algoritmo asimmetrico per lo scambio della chiave di sessione.
+Comunicazione con la parte in C per la cifratura del messaggio.
+Interfaccia utente JavaFX
+
+* Interfaccia Java C
+Comunicazione di processi (un)named pipe
+Come Java esegue programma esterno (in C) 
+Java Native Interface 
+
+* (Un)named pipe
+Le unnamed pipe sono un metodo semplice tramite il quale il Process Manager del SO (Unix/Windows) fa comunicare 2 o più processi.
+Si usa la semplice regola che l'output del primo diventa l'input del secondo processo
+esempio
+ls|sort
+ls elenca i file all'interno di una cartella.
+sort ordina un file di testo.
+Usando la pipe, "|", l'output video di ls viene reindirizzato e diventa l'input di sort.
+La unnamed pipe è utile ma limitata.
+
+1. Comunicazione in una sola direzione e tra soli due processi alla volta
+a|b|c
+
+2. Il processo deve avere un I/O molto schematico e solo da console.
+La named pipe invece permette di usare un "file" di tipo pipe che si può utilizzare in lettura e scrittura.
+In Unix tutto è file. Ma la named pipe la possiamo vedere come memoria RAM condivisa tra due o più processi.
+ 
+* Un esempio di named pipe tra C e Java
+Le named pipe si identificano con un file virtuale su Unix 
+es.
+mkfifo temp
+crea il file named pipe "temp"
+
+Le named pipe permettono di far comunicare processi differenti sia di C (Java) sia per far comunicare C e Java
+
+** Esempio due processi in C
+./p1
+./p2
+In questo caso creiamo la named pipe all'interno dei due processi
+** Esempio named pipe tra C e Java
+In questo caso abbiamo due processi, uno in Java e l'altro in C (vedremo più in dettaglio tale programma nella settimana 10).
+mkfifo Java2C001
+mkfifo C2Java001
+./PRNG 1 pippo &
+java RandomThreadClient
+java RandomThreadServer
+
+N.b. & permette di lanciare un programma in background!
+N.b. mi servono due pipe, in Java2C001 avremo che il processo in Java scrive e quello in C legge, mentre in C2Java001 C scrive e Java legge
+
+
+In sintesi: 
+La (un)named pipe una volta creata viene gestita all'interno dei processi che comunicano (IPC=Inter Process Comunication) come se fosse un file. Ma non lo è! I processi si "mandano messaggi" tramite la pipe.  
+D'altra parte i processi vedono la pipe come se fosse a tutti gli effetti un file.
+
+* Comandi da terminale Linux/Mac (Unix) e gcc
+----cd cambia directory/folder
+--es. vai alla home
+cd ~
+-- dalla cartella corrente vai alla sottocartella Documents
+cd Documents
+-- Vai alla cartella padre della cartella corrente
+cd ..
+
+---- mkdir crea directory
+-- crea la sottodirectory Lecture1 della cartella corrente
+mkdir Lecture1 
+
+
+---- ls elenco dei file/directory 
+-- visualizza i file della directory corrente
+ls
+-- visualizza i file della directory corrente di estensione c
+ls *.c 
+-- visualizza i file della sottdirectory Lecture1
+ls pipes
+
+---- cp copia file 
+-- Copia il file program1.c nel file program2.c
+cp program1.c program2.c
+
+---- Scriviamo il nostro primo programma e compiliamolo
+
+-- Se voglio avere la console di nuovo attiva, posso mandare l'editor in background
+emacs hello.c &
+
+---- Comandi per la compilazione e generazione di librerie
+-- compila il sorgente hello.c e genera l'eseguibile hello
+gcc hello.c -o hello
+
+[[./hello.c][Esempio di printf]]
+[[./nomeEta.c][Esempio di scanf]]
+
+* Tabelle ASCII
+Lancio 
+./ascii
+I codici ASCII vanno da 32 a 126
+Scrivi ascii.c che si comporti come il mio (e compilalo)!
+N.B.
+In C un char può esser visto come int e viceversa.
+1. E' sufficiente un ciclo for. 
+2. Per stampare un singolo carattere in printf usa "%c".
+* Passaggio di parametri da linea di comando in C e Java
+** Una tabella ascii ridimensionabile
+[[./asciiTableFlexible.c][asciiTable]]
+** Esercizio 
+Crea un programma somma tale che:
+./somma 1 2 3 4 
+restituisca 
+Somma=10
+./somma 2 3 5 17 -15
+restituisca 
+Somma=12
+* In Java
+Ecco il programma in Java
+[[./Somma.java][Somma in Java]]
+
+

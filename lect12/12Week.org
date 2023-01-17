@@ -1,0 +1,147 @@
+* RSA (continua)
+
+** Alice e Bob
+Bob una volta che Alice ha generato le chiavi, potrà accedere al file Public.key e quindi mandare un messaggio ad Alice.
+
+** Esercizio Bob 
+Aiuta Bob a comunicare con Alice tramite un breve messaggio inserito da console e che verrà memeorizzato sul file
+SMS.cry
+
+Implementa le funzioni:
+readPublicKeyFromFile(...); 
+encrypt(...)
+
+Eccoti il programma di test
+[[./RSA/Bob.c][Bob]]
+
+** Esercizio Alice
+Analogamente aiuta Alice a decriptare il messaggio (inviato da Bob: "SMS.cry")  tramite la sua chiave privata.
+Eccoti il programma
+
+[[./RSA/Alice.c][Alice]]
+
+** CRT
+Ricordiamo che Alice conosce p, q. Dunque può usare il Teorema Cinese dei Resti. 
+Cioè Alice calcola
+a1=c^d mod p
+a2=c^d mod q
+L'unica soluzione del sistema
+x=a1 mod p
+x=a2 mod q
+dove 
+0<=x<pq 
+è il nostro messaggio!
+Un modo per risolvere il problema è trovare (possibilmente precalcolare) s e q tali che
+sp+qt=1
+Ad esempio utilizzando
+mpz_gcdext(g,s,t,p,q)
+otterremo ovviamente g=1, ma anche s e t.
+Dunque facendo semplici calcoli avremo che
+sp=1-qt=1 (mod q)
+qt=1-sp=1 (mod p)
+E dunque
+x=a1*q*t+a2*p*s
+è una soluzione.
+
+** Esercizio CRT
+Esercizio implementa decryptCRC(...).
+Usa come file main
+[[./RSA/AliceCRT.c][Alice usa CRT]]
+
+* RSA in Java
+** BigInteger
+Tutta la crittografia a chiave pubblica in Java è basata sulla classe BigInteger, che è integrata in Java dalle prime release, e che giocherà un ruolo analogo a GMP.
+
+Iniziamo lanciando il programma
+java BigIntegerExample
+che calcola pseudoprimi con probabilità crescente
+ 
+Si può osservare che alcuni pseudo-primi non passino il test al secondo tentativo
+
+Analizziamo il codice
+[[./RSAJava/BigIntegerExample.java][Esempio di BigInteger]]
+
+** RSA : Criptiamo BEEF  
+I seguenti esempi sono degli estratti presi dal libro di D. Hook
+Beginning Cryptography with Java 
+Il primo obbiettivo è criptare i 2 byte di valore
+BEEF (manzo in inglese).
+[[./RSAJava/BaseRSAExample.java][Criptiamo BEEF]]
+
+La classe KeyFactory, "fabbrica di chiavi", permette la definizione ed i metodi di esportazione delle chiavi pubbliche e private da e verso i provider.
+ 
+In questo caso avendo precalcolato i 128 bit (16 byte) di n ed i valori di d,e 
+(n,d,e)
+creiamo gli oggetti
+RSAPublicKeySpec
+RSAPrivateKeySpec
+e tramite questi generiamo la chiave nel formato interno del provider tramite
+
+KeyFactory.generatePublic/Private
+
+Per crittare e decrittare userò gli stessi passi utilizzati per AES (vedi AESEncDecFileConsole.java, settimana 07)
+
+
+Nota:
+Le chiavi così ottenute sono a 128 bit (molto meno dei 1024 bit minimi)
+
+** Java Random Key
+
+Un modo per generare chiavi crittografiche in Java è tramite SecureRandom. 
+Dalla documentazione Sun/Oracle
+
+L'algoritmo di default di SecureRandom è
+SHA-1 PRNG
+Il seed è settato in modo automatico e, sulle macchine Linux/Mac, java usa l'entropia di sistema
+/dev/(u)random
+Nota Bene.
+Questa è l'entropia che abbiamo già utilizzato tramite linguaggio C e le chiamate Unix.
+
+
+Il generatore delle chiavi (questa volta a 256 bit=32 byte) che definiamo nel seguente
+
+
+[[./RSAJava/RandomKeyRSAExample.java][Chiavi random]]
+
+usa appunto random definito come oggetto della classe "SecureRandom" per generare la coppia di chiavi.
+
+Anche in questo caso criptiamo e decriptiamo BEEF.
+
+
+** Java Padding
+
+Per aumentare la sicurezza ed eliminare possibili cancellazioni di zeri iniziali, 
+(cancellazioni legate alla matematica modulare di RSA)
+E.g.
+Il blocco di 3 byte
+00BEEF mod m  diventa dopo la decriptazione BEEF mod m
+(per ulteriori esempi vedi il libro di Hooks già citato ad inizio lezione),
+è consigliato da RSA (vedi documento citato) aggiungere un metodo di padding per il nostro cifrato.
+
+Il padding proposto da RSA e già implementato usa 
+1. Funzioni hash (di default è SHA-1, ma può essere modificata)
+2. Rete di Feistel (come in DES). Vedi
+https://en.wikipedia.org/wiki/Feistel_cipher
+
+Questo algoritmo di Padding si chiama 
+OAEP=Optimal Asymmetric Encryption Padding
+Vedi
+https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding
+Ed infine il documento
+"PKCS #1 v2.2: RSA Cryptography Standard"
+che trovate su drive
+
+Si deve pagare un prezzo per questa miglioria. Infatti il nostro cifrato dovrà andare da 256 a 384 bit (+128 bit) (Vedi nota)
+[[./RSAJava/OAEPPaddedRSAExample.java][OAEP padding]]
+Nota. 
+Secondo il documento RSA che trovate su Drive
+
+la lunghezza del messaggio reale sarà, detta k la lunghezza del modulo, 
+k-2(hlen)-2 (in byte)
+dunque visto che di default si usa SHA1 avremo, questa volta in bit,
+384 -2(160) -2(8) =384-336=48 
+
+(vedi anche OAEPBound.java)
+
+
+  
